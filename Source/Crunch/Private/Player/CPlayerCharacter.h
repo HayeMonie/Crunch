@@ -19,7 +19,7 @@ class ACPlayerCharacter : public ACCharacter
 public:
 	ACPlayerCharacter();
 	virtual void BeginPlay() override;
-	virtual void PawnClientRestart() override;   // 初始化客户端中的输入系统
+	virtual void PawnClientRestart() override;   // 多人游戏中 初始化客户端中的输入系统
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	
 private:
