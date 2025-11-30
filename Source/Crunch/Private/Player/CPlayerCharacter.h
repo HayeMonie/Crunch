@@ -6,6 +6,7 @@
 #include "EnhancedInputSubsystemInterface.h"
 #include "InputActionValue.h"
 #include "Character/CCharacter.h"
+#include "GAS/CAbilitySystemComponent.h"
 #include "CPlayerCharacter.generated.h"
 
 /**

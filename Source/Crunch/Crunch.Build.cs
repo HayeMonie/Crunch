@@ -13,6 +13,10 @@ public class Crunch : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"EnhancedInput",
+			"GameplayAbilities",
+			"GameplayTags",
+			"GameplayTasks",
+			
 		});
 
 		// Uncomment if you are using Slate UI
