@@ -2,6 +2,7 @@
 
 
 #include "Character/CCharacter.h"
+#include "Components/WidgetComponent.h"
 #include "GAS/CAbilitySystemComponent.h"
 #include "GAS/CAttributeSet.h"
 
@@ -34,6 +35,7 @@ void ACCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	
+
 }
 
 // Called every frame
@@ -54,4 +56,3 @@ UAbilitySystemComponent* ACCharacter::GetAbilitySystemComponent() const
 {
 	return CAbilitySystemComponent;
 }
-

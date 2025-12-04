@@ -12,8 +12,31 @@ void UValueGauge::NativeConstruct()
 	ProgressBar->SetFillColorAndOpacity(BarColor);
 }
 
+void UValueGauge::SetAndBoundToGameplayAttribute(UAbilitySystemComponent* AbilitySystemComponent,
+	const FGameplayAttribute& Attribute, const FGameplayAttribute& MaxAttribute)
+{
+	if (AbilitySystemComponent)
+	{
+		bool bFound = false;
+		float Value = AbilitySystemComponent->GetGameplayAttributeValue(Attribute, bFound);
+		float MaxValue = AbilitySystemComponent->GetGameplayAttributeValue(MaxAttribute, bFound);
+		if (bFound)
+		{
+			SetValue(Value, MaxValue); // 更新UI显示
+		}
+
+		// 订阅普通属性变更
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(Attribute).AddUObject(this, &UValueGauge::ValueChanged);
+		// 订阅最大属性变更
+		AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(MaxAttribute).AddUObject(this, &UValueGauge::MaxValueChanged);
+	}
+}
+
 void UValueGauge::SetValue(float NewValue, float NewMaxValue)
 {
+	CachedValue = NewValue;
+	CachedMaxValue = NewMaxValue;
+	
 	if (NewMaxValue == 0)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Value Gauge : %s, Max Value is 0"), *GetName());
@@ -30,4 +53,14 @@ void UValueGauge::SetValue(float NewValue, float NewMaxValue)
 		FText::AsNumber(NewValue, &FormattingOptions),
 		FText::AsNumber(NewMaxValue, &FormattingOptions)
 	));
+}
+
+void UValueGauge::ValueChanged(const FOnAttributeChangeData& ChangedData)
+{
+	SetValue(ChangedData.NewValue, CachedMaxValue);
+}
+
+void UValueGauge::MaxValueChanged(const FOnAttributeChangeData& ChangedData)
+{
+	SetValue(CachedValue, ChangedData.NewValue);
 }
