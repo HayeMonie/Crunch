@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "AbilitySystemInterface.h"
+#include "Components/WidgetComponent.h"
 #include "CCharacter.generated.h"
 
 UCLASS()
@@ -17,6 +18,8 @@ public:
 	ACCharacter();
 	void ServerSideInit();
 	void ClientSideInit();
+
+	virtual void PossessedBy(AController* NewController) override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -45,5 +48,22 @@ private:
 	/*****************************************************************************************/
 	/*                                         UI                                            */
 	/*****************************************************************************************/
+public:
+	bool IsLocallyControlledByPlayer() const;
+	
+private:
+	void ConfigureOverHeadStatusWidget();
 
+	UPROPERTY()
+	UWidgetComponent* OverHeadWidgetComponent;
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	float HeadStatGaugeVisibilityUpdateGap {1.f};
+
+	UPROPERTY(EditDefaultsOnly, Category = "UI")
+	float HeadStatGaugeVisibilityRangeSquared {1000000.f};
+
+	FTimerHandle HeadStatGaugeVisibilityUpdateTimerHandle;
+
+	void UpdateHeadGaugeVisibility();
 };
