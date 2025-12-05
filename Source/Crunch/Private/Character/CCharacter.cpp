@@ -29,6 +29,7 @@ void ACCharacter::ServerSideInit()
 {
 	CAbilitySystemComponent->InitAbilityActorInfo(this, this);
 	CAbilitySystemComponent->ApplyInitialEffects();
+	CAbilitySystemComponent->GiveInitialAbilities();
 }
 
 void ACCharacter::ClientSideInit()

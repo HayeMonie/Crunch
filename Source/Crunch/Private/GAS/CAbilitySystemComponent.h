@@ -16,12 +16,16 @@ class CRUNCH_API UCAbilitySystemComponent : public UAbilitySystemComponent
 
 public:
 	void ApplyInitialEffects();
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Test")
-	int32 TestValue;
+	void GiveInitialAbilities();
 	
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Effects")
 	TArray<TSubclassOf<UGameplayEffect>> InitialEffects;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities")
+	TArray<TSubclassOf<UGameplayAbility>> Abilities;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities")
+	TArray<TSubclassOf<UGameplayAbility>> BasicAbilities;
 	
 };
