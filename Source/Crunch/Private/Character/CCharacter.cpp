@@ -85,7 +85,7 @@ void ACCharacter::ConfigureOverHeadStatusWidget()
 
 	if (IsLocallyControlledByPlayer())
 	{
-		OverHeadWidgetComponent->SetVisibility(false);
+		OverHeadWidgetComponent->SetHiddenInGame(true);
 		return;
 	}
 
@@ -93,6 +93,7 @@ void ACCharacter::ConfigureOverHeadStatusWidget()
 	if (OverHeadStatsGauge)
 	{
 		OverHeadStatsGauge->ConfigureWithASC(GetAbilitySystemComponent());
+		OverHeadWidgetComponent->SetHiddenInGame(false);
 
 		GetWorldTimerManager().ClearTimer(HeadStatGaugeVisibilityUpdateTimerHandle);
 		GetWorldTimerManager().SetTimer(HeadStatGaugeVisibilityUpdateTimerHandle, this,
