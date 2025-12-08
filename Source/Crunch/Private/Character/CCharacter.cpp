@@ -3,9 +3,12 @@
 
 #include "Character/CCharacter.h"
 #include "Widgets/ValueGauge.h"
+#include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GAS/CAbilitySystemComponent.h"
 #include "GAS/CAttributeSet.h"
+#include "GAS/CAbilitySystemStatics.h"
 #include "Kismet/GameplayStatics.h"
 #include "Widgets/OverHeadStatsGauge.h"
 
@@ -22,6 +25,8 @@ ACCharacter::ACCharacter()
 
 	// OverHeadWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("Over Head Widget Component"));
 	// OverHeadWidgetComponent->SetupAttachment(GetRootComponent());
+
+	BindGASChangeDelegates();
 
 }
 
@@ -51,6 +56,8 @@ void ACCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	ConfigureOverHeadStatusWidget();
+
+	MeshRelativeTransform = GetMesh()->GetRelativeTransform();
 }
 
 // Called every frame
@@ -75,6 +82,26 @@ UAbilitySystemComponent* ACCharacter::GetAbilitySystemComponent() const
 bool ACCharacter::IsLocallyControlledByPlayer() const
 {
 	return GetController() != nullptr && GetController()->IsLocalPlayerController();
+}
+
+void ACCharacter::BindGASChangeDelegates()
+{
+	if (CAbilitySystemComponent)
+	{
+		CAbilitySystemComponent->RegisterGameplayTagEvent(UCAbilitySystemStatics::GetDeadStatsTag()).AddUObject(this, &ACCharacter::DeathTagUpdated);
+	}
+}
+
+void ACCharacter::DeathTagUpdated(const FGameplayTag Tag, int32 NewCount)
+{
+	if (NewCount != 0)
+	{
+		StartDeathSequence();
+	}
+	else
+	{
+		Respawn();
+	}
 }
 
 void ACCharacter::ConfigureOverHeadStatusWidget()
@@ -109,4 +136,83 @@ void ACCharacter::UpdateHeadGaugeVisibility()
 		float DistSquared = FVector::DistSquared(GetActorLocation(), LocalPlayerPawn->GetActorLocation());
 		OverHeadWidgetComponent->SetHiddenInGame(DistSquared > HeadStatGaugeVisibilityRangeSquared);
 	}
+}
+
+void ACCharacter::SetStatusGaugeEnabled(bool bIsEnabled)
+{
+	GetWorldTimerManager().ClearTimer(HeadStatGaugeVisibilityUpdateTimerHandle);
+
+	if (bIsEnabled)
+	{
+		ConfigureOverHeadStatusWidget();
+	}
+	else
+	{
+		OverHeadWidgetComponent->SetHiddenInGame(true);
+	}
+}
+
+void ACCharacter::DeathMontageFinished()
+{
+	SetRagdollEnabled(true);
+}
+
+void ACCharacter::SetRagdollEnabled(bool bIsEnabled)
+{
+	if (bIsEnabled)
+	{
+		GetMesh()->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		GetMesh()->SetSimulatePhysics(true);
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	}
+	else
+	{
+		GetMesh()->SetSimulatePhysics(false);
+		GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		GetMesh()->AttachToComponent(GetCapsuleComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		GetMesh()->SetRelativeTransform(MeshRelativeTransform);
+	}
+}
+
+void ACCharacter::PlayDeathAnimation()
+{
+	if (DeathMontage)
+	{
+		float MontageDuration = PlayAnimMontage(DeathMontage);
+		GetWorldTimerManager().SetTimer(DeathMontageTimerHandle, this, &ACCharacter::DeathMontageFinished, MontageDuration + DeathMontageFinishTimeShift);
+	}
+	
+}
+
+void ACCharacter::StartDeathSequence()
+{
+	OnDead();
+	PlayDeathAnimation();
+	SetStatusGaugeEnabled(false);
+	
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+}
+
+void ACCharacter::Respawn()
+{
+	OnRespawn();
+	SetRagdollEnabled(false);
+	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
+	GetMesh()->GetAnimInstance()->StopAllMontages(0.f);
+	SetStatusGaugeEnabled(true);
+
+	if (CAbilitySystemComponent)
+	{
+		CAbilitySystemComponent->ApplyFullStatEffect();
+	}
+}
+
+void ACCharacter::OnDead()
+{
+}
+
+void ACCharacter::OnRespawn()
+{
 }

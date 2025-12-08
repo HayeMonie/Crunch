@@ -35,7 +35,9 @@ private:
 	FVector GetMoveForwardDirection() const;
 
 	
-	/** Input **/
+	/**********************************************************************/
+	/*                               Input                                */
+	/**********************************************************************/
 	UPROPERTY(EditDefaultsOnly, Category = "Input")
 	class UInputAction* JumpInputAction;
 
@@ -55,5 +57,11 @@ private:
 	void HandleMoveInput(const FInputActionValue& InputActionValue);
 	void HandleAbilityInput(const FInputActionValue& InputActionValue, ECAbilityInputID InputID);
 
+
+	/**********************************************************************/
+	/*                          Death And Respawn                         */
+	/**********************************************************************/
+	virtual void OnDead() override;
+	virtual void OnRespawn() override;
 	
 };
