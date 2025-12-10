@@ -11,3 +11,5 @@
 ### 04 - Setup Basic UI Widgets : 2025.12.4
 
 ### 05 - Implement the Combo Gameplay Ability : 2025.12.7
+
+### 06 - Setup Death, Respawn and Teams : 2025.12.11
