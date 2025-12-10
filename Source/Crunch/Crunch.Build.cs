@@ -19,6 +19,7 @@ public class Crunch : ModuleRules
 			"UMG",
 			"Slate",
 			"SlateCore",
+			"AIModule",
 			
 		});
 
