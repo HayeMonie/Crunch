@@ -12,4 +12,4 @@
 
 ### 05 - Implement the Combo Gameplay Ability : 2025.12.7
 
-### 06 - Setup Death, Respawn and Teams : 2025.12.11
+### 06 - Setup Death, Respawn and Teams : 2025.12.10
