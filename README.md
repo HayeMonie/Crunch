@@ -1,10 +1,14 @@
 # UE5.6 Multiplayer MOBA Game with GAS and AWS Server
 ## Start Date: 2026.11.20
 
-## 云笔记链接：
+## 飞书云笔记链接：
 [云笔记链接](https://gcnl0gp4zujp.feishu.cn/drive/folder/IFKQf59IkljI0ldAJxPcy9DInkc?from=from_copylink)
 ## 项目打卡记录：
 [打卡记录](https://gcnl0gp4zujp.feishu.cn/sheets/ASL4srK9rhd3datifCTcuG4FnOd)
+## Bilibili个人主页：
+[Bilibili个人主页](https://space.bilibili.com/216091746)
+## 网易云音乐个人主页：
+[网易云音乐个人主页](https://music.163.com/#/artist?id=60320702)
 
 ### 03 - Integrate Gameplay Ability System to the Character : 2025.11.30
 
