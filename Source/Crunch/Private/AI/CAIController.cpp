@@ -3,7 +3,7 @@
 
 #include "AI/CAIController.h"
 #include "Perception/AIPerceptionComponent.h"
-#include "Character/CCharacter.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 
 ACAIController::ACAIController()
@@ -23,6 +23,8 @@ ACAIController::ACAIController()
 	SightConfig->PeripheralVisionAngleDegrees = 180.f;
 
 	AIPerceptionComponent->ConfigureSense(*SightConfig);
+	AIPerceptionComponent->OnTargetPerceptionUpdated.AddDynamic(this, &ACAIController::TargetPerceptionUpdated);
+	AIPerceptionComponent->OnTargetPerceptionForgotten.AddDynamic(this, &ACAIController::TargetForgotten);
 }
 
 void ACAIController::OnPossess(APawn* NewPawn)
@@ -36,4 +38,87 @@ void ACAIController::OnPossess(APawn* NewPawn)
 	{
 		PawnTeamInterface->SetGenericTeamId(GetGenericTeamId());
 	}
+}
+
+void ACAIController::BeginPlay()
+{
+	Super::BeginPlay();
+
+	RunBehaviorTree(BehaviorTree);
+}
+
+void ACAIController::TargetPerceptionUpdated(AActor* TargetActor, FAIStimulus Stimulus)
+{
+	if (Stimulus.WasSuccessfullySensed())
+	{
+		if (!GetCurrentTarget())
+		{
+			SetCurrentTarget(TargetActor);
+		}
+	}
+	else
+	{
+		if (GetCurrentTarget() == TargetActor)
+		{
+			SetCurrentTarget(nullptr);
+		}
+	}
+}
+
+const UObject* ACAIController::GetCurrentTarget() const
+{
+	const UBlackboardComponent* BlackboardComponent = GetBlackboardComponent();
+	if (BlackboardComponent)
+	{
+		return GetBlackboardComponent()->GetValueAsObject(TargetBlackboardKeyName);
+	}
+
+	return nullptr;
+}
+
+void ACAIController::SetCurrentTarget(AActor* NewTarget)
+{
+	UBlackboardComponent* BlackboardComponent = GetBlackboardComponent();
+	if (!BlackboardComponent)
+	{
+		return;
+	}
+		
+	if (NewTarget)
+	{
+		GetBlackboardComponent()->SetValueAsObject(TargetBlackboardKeyName, NewTarget);
+	}
+	else
+	{
+		GetBlackboardComponent()->ClearValue(TargetBlackboardKeyName);
+	}
+}
+
+void ACAIController::TargetForgotten(AActor* ForgottenActor)
+{
+	if (!ForgottenActor)
+	{
+		return;
+	}
+
+	if (GetCurrentTarget() == ForgottenActor)
+	{
+		SetCurrentTarget(GetNextPerceivedActor());
+	}
+}
+
+AActor* ACAIController::GetNextPerceivedActor() const
+{
+	if (PerceptionComponent)
+	{
+		TArray<AActor*> Actors;
+		AIPerceptionComponent->GetPerceivedHostileActors(Actors);
+
+		if (Actors.Num() != 0)
+		{
+			return Actors[0];
+		}
+	}
+
+	return nullptr;
 }
