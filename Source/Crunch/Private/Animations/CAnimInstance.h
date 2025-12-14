@@ -37,6 +37,12 @@ public:
 		return Speed == 0;
 	}
 
+	UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe))
+	FORCEINLINE float GetSpeed() const
+	{
+		return Speed;
+	}
+
 	// UFUNCTION(BlueprintCallable, meta = (BlueprintThreadSafe))
 	// FORCEINLINE float GetYawSpeed() const
 	// {

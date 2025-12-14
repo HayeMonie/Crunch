@@ -10,8 +10,11 @@
 #include "GAS/CAttributeSet.h"
 #include "GAS/CAbilitySystemStatics.h"
 #include "Kismet/GameplayStatics.h"
+#include "Perception/AISense_Sight.h"
 #include "Net/UnrealNetwork.h"
 #include "Widgets/OverHeadStatsGauge.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+
 
 // Sets default values
 ACCharacter::ACCharacter()
@@ -27,13 +30,21 @@ ACCharacter::ACCharacter()
 	// OverHeadWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("Over Head Widget Component"));
 	// OverHeadWidgetComponent->SetupAttachment(GetRootComponent());
 
-	BindGASChangeDelegates();
+	PerceptionStimuliSourceComponent = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>(TEXT("Perception Stimuli Source Component"));
 
 }
 
 void ACCharacter::ServerSideInit()
 {
+	if (!CAbilitySystemComponent)
+	{
+		UE_LOG(LogTemp, Error, TEXT("CAbilitySystemComponent is NULL in ServerSideInit for %s"), *GetName());
+		return;
+	}
+	
 	CAbilitySystemComponent->InitAbilityActorInfo(this, this);
+	// 绑定死亡标签变化委托，监听角色死亡和重生
+	BindGASChangeDelegates();
 	CAbilitySystemComponent->ApplyInitialEffects();
 	CAbilitySystemComponent->GiveInitialAbilities();
 }
@@ -41,6 +52,8 @@ void ACCharacter::ServerSideInit()
 void ACCharacter::ClientSideInit()
 {
 	CAbilitySystemComponent->InitAbilityActorInfo(this, this);
+	// 客户端也需要绑定委托以响应服务器复制的死亡标签变化
+	BindGASChangeDelegates();
 }
 
 void ACCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -53,7 +66,7 @@ void ACCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifet
 void ACCharacter::PossessedBy(class AController* NewController)
 {
 	Super::PossessedBy(NewController);
-	if (NewController && !NewController->IsPlayerController())
+	if (NewController && !NewController->IsPlayerController() && CAbilitySystemComponent)
 	{
 		ServerSideInit();
 	}
@@ -66,6 +79,14 @@ void ACCharacter::BeginPlay()
 	ConfigureOverHeadStatusWidget();
 
 	MeshRelativeTransform = GetMesh()->GetRelativeTransform();
+
+	PerceptionStimuliSourceComponent->RegisterForSense(UAISense_Sight::StaticClass());
+
+	// 客户端初始化GAS，确保能接收并响应服务器复制的标签变化
+	if (!HasAuthority() && CAbilitySystemComponent)
+	{
+		ClientSideInit();
+	}
 }
 
 // Called every frame
@@ -195,16 +216,24 @@ void ACCharacter::PlayDeathAnimation()
 void ACCharacter::StartDeathSequence()
 {
 	OnDead();
+
+	if (CAbilitySystemComponent)
+	{
+		CAbilitySystemComponent->CancelAllAbilities();	
+	}
+	
 	PlayDeathAnimation();
 	SetStatusGaugeEnabled(false);
 	
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	SetAIPerceptionStimuliSourceEnabled(false);
 }
 
 void ACCharacter::Respawn()
 {
 	OnRespawn();
+	SetAIPerceptionStimuliSourceEnabled(true);
 	SetRagdollEnabled(false);
 	GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_Walking);
@@ -219,7 +248,7 @@ void ACCharacter::Respawn()
 			SetActorTransform(StartSpot->GetActorTransform());
 		}
 	}
-
+	
 	if (CAbilitySystemComponent)
 	{
 		CAbilitySystemComponent->ApplyFullStatEffect();
@@ -244,4 +273,21 @@ void ACCharacter::SetGenericTeamId(const FGenericTeamId& NewTeamID)
 FGenericTeamId ACCharacter::GetGenericTeamId() const
 {
 	return TeamID;
+}
+
+void ACCharacter::SetAIPerceptionStimuliSourceEnabled(bool bIsEnabled)
+{
+	if (!PerceptionStimuliSourceComponent)
+	{
+		return;
+	}
+
+	if (bIsEnabled)
+	{
+		PerceptionStimuliSourceComponent->RegisterWithPerceptionSystem();
+	}
+	else
+	{
+		PerceptionStimuliSourceComponent->UnregisterFromPerceptionSystem();
+	}
 }
