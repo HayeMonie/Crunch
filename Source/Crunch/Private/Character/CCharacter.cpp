@@ -181,6 +181,19 @@ void ACCharacter::SetStatusGaugeEnabled(bool bIsEnabled)
 	}
 }
 
+bool ACCharacter::IsDead() const
+{
+	return GetAbilitySystemComponent()->HasMatchingGameplayTag(UCAbilitySystemStatics::GetDeadStatsTag());  
+}
+
+void ACCharacter::RespawnImmediately()
+{
+	if (HasAuthority())  
+	{
+		GetAbilitySystemComponent()->RemoveActiveEffectsWithGrantedTags(FGameplayTagContainer(UCAbilitySystemStatics::GetDeadStatsTag()));  
+	}
+}
+
 void ACCharacter::DeathMontageFinished()
 {
 	SetRagdollEnabled(true);
@@ -273,6 +286,11 @@ void ACCharacter::SetGenericTeamId(const FGenericTeamId& NewTeamID)
 FGenericTeamId ACCharacter::GetGenericTeamId() const
 {
 	return TeamID;
+}
+
+void ACCharacter::OnRep_TeamID()
+{
+	// override in child class
 }
 
 void ACCharacter::SetAIPerceptionStimuliSourceEnabled(bool bIsEnabled)

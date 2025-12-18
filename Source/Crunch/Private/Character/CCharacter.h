@@ -77,6 +77,15 @@ private:
 	/*****************************************************************************************/
 	/*                               Death And Respawn                                       */
 	/*****************************************************************************************/
+public:
+	// 判断角色是否处于死亡状态（基于DeathTag）
+	bool IsDead() const;
+
+	// 立即重生（封装重生逻辑，仅服务端执行）
+	void RespawnImmediately();
+	
+	
+private:
 	FTransform MeshRelativeTransform;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Death")
@@ -110,8 +119,11 @@ public:
 	virtual FGenericTeamId GetGenericTeamId() const override;
 
 private:
-	UPROPERTY(Replicated)
+	UPROPERTY(ReplicatedUsing = OnRep_TeamID)
 	FGenericTeamId TeamID;
+
+	UFUNCTION()
+	virtual void OnRep_TeamID();
 
 	/*****************************************************************************************/
 	/*                                         AI                                            */

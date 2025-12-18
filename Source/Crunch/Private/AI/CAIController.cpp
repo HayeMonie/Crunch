@@ -8,7 +8,6 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
-#include "GAS/CAbilitySystemComponent.h"
 #include "GAS/CAbilitySystemStatics.h"
 
 
@@ -37,12 +36,12 @@ void ACAIController::OnPossess(APawn* NewPawn)
 {
 	Super::OnPossess(NewPawn);
 
-	SetGenericTeamId(FGenericTeamId(0));
-
 	IGenericTeamAgentInterface* PawnTeamInterface = Cast<IGenericTeamAgentInterface>(NewPawn);
 	if (PawnTeamInterface)
 	{
-		PawnTeamInterface->SetGenericTeamId(GetGenericTeamId());
+		SetGenericTeamId(PawnTeamInterface->GetGenericTeamId());
+		ClearAndDisableAllSenses();
+		EnableAllSenses();
 	}
 
 	UAbilitySystemComponent* PawnASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(NewPawn);
@@ -192,6 +191,6 @@ void ACAIController::PawnDeadTagUpdated(const FGameplayTag Tag, int32 Count)
 	else
 	{
 		GetBrainComponent()->StartLogic();
-		EnableAllSenses();
+		EnableAllSenses(); 
 	}
 }

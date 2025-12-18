@@ -5,11 +5,38 @@
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 
+void UValueGauge::NativePreConstruct()
+{
+	Super::NativePreConstruct();
+
+	if (ValueText)
+	{
+		ValueText->SetFont(ValueTextInfo);
+		ValueText->SetVisibility(bValueTextVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	}
+
+	if (ProgressBar)
+	{
+		ProgressBar->SetFillColorAndOpacity(BarColor);
+		ProgressBar->SetVisibility(bProgressBarVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	}
+}
+
 void UValueGauge::NativeConstruct()
 {
 	Super::NativeConstruct();
 
-	ProgressBar->SetFillColorAndOpacity(BarColor);
+	if (ValueText)
+	{
+		ValueText->SetFont(ValueTextInfo);
+		ValueText->SetVisibility(bValueTextVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	}
+
+	if (ProgressBar)
+	{
+		ProgressBar->SetFillColorAndOpacity(BarColor);
+		ProgressBar->SetVisibility(bProgressBarVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	}
 }
 
 void UValueGauge::SetAndBoundToGameplayAttribute(UAbilitySystemComponent* AbilitySystemComponent,

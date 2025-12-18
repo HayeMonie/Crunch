@@ -18,6 +18,7 @@ class UValueGauge : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	virtual void NativePreConstruct() override;
 	virtual void NativeConstruct() override;
 	void SetAndBoundToGameplayAttribute(UAbilitySystemComponent* AbilitySystemComponent, const FGameplayAttribute& Attribute, const FGameplayAttribute& MaxAttribute);
 	void SetValue(float NewValue, float NewMaxValue);
@@ -30,7 +31,16 @@ private:
 	void MaxValueChanged(const FOnAttributeChangeData& ChangedData);
 	
 	UPROPERTY(EditAnywhere, Category = "Visual")
-	FLinearColor BarColor = FLinearColor::White;
+	FLinearColor BarColor;
+
+	UPROPERTY(EditAnywhere, Category = "Visual")
+	FSlateFontInfo ValueTextInfo;
+
+	UPROPERTY(EditAnywhere, Category = "Visual")
+	bool bValueTextVisible = true;
+
+	UPROPERTY(EditAnywhere, Category = "Visual")
+	bool bProgressBarVisible = true;
 	
 	UPROPERTY(VisibleAnywhere, meta = (BindWidget))
 	class UProgressBar* ProgressBar;
