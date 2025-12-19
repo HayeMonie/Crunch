@@ -118,7 +118,6 @@ void UGA_Combo::ComboChangedEventReceived(FGameplayEventData Data)
 	if (EventTag == GetComboChangedEventEndTag())
 	{
 		NextComboName = NAME_None;
-		UE_LOG(LogTemp, Warning, TEXT("Next Combo is Cleared"));
 		return;
 	}
 
@@ -126,7 +125,6 @@ void UGA_Combo::ComboChangedEventReceived(FGameplayEventData Data)
 	UGameplayTagsManager::Get().SplitGameplayTagFName(EventTag, TagNames);
 	NextComboName = TagNames.Last();
 
-	UE_LOG(LogTemp, Warning, TEXT("Combo Changed Event Received: %s"), *NextComboName.ToString());
 }
 
 void UGA_Combo::DoDamage(FGameplayEventData Data)

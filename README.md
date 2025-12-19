@@ -3,7 +3,7 @@
 
 ## 飞书云笔记链接：
 - 笔记原由Obsidian配合AI摘写，使用Markdown语法与Obsidian的部分插件，所以在搬迁至飞书云文档的时候会保留部分突兀的符号与单词。
-- 鉴于飞书云文档需要登录后才可以查看，后面会逐渐转向使用语雀等等云笔记平台。
+
 ### [云笔记链接](https://gcnl0gp4zujp.feishu.cn/drive/folder/IFKQf59IkljI0ldAJxPcy9DInkc?from=from_copylink)
 
 ## 项目打卡记录：
