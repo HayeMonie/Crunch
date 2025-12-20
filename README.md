@@ -16,6 +16,11 @@
 ### [网易云音乐个人主页](https://music.163.com/#/artist?id=60320702)
 
 ## 课程内容与完成时间节点：
+
+- ### 01 - Introduction : *2025.11.23*
+
+- ### 02 - Basic Character Movement Control and Animations : *2025.11.29*
+
 - ### 03 - Integrate Gameplay Ability System to the Character : *2025.11.30*
 
 - ### 04 - Setup Basic UI Widgets : *2025.12.4*
@@ -25,3 +30,5 @@
 - ### 06 - Setup Death, Respawn and Teams : *2025.12.10*
 
 - ### 07 - Create the Minions with AI Perception and Behavior : *2025.12.18*
+
+- ### 08 - The Upper Cut Ability : *2025.12.20*
