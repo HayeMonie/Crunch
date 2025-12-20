@@ -14,7 +14,10 @@ UCLASS()
 class UCGameplayAbility : public UGameplayAbility
 {
 	GENERATED_BODY()
+public:
+	UCGameplayAbility();
 
+	
 protected:
 	class UAnimInstance* GetOwnerAnimInstance() const;
 	TArray<FHitResult> GetHitResultFromSweepLocationTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle,
@@ -27,6 +30,7 @@ protected:
 	void PushTarget(AActor* Target, const FVector& PushVelocity);
 
 	ACharacter* GetOwningAvatarCharacter();
+	void ApplyGameplayEffectToHitResultActor(const FHitResult& HitResult, TSubclassOf<UGameplayEffect> GameplayEffect, int Level = 1);
 	
 	
 private:

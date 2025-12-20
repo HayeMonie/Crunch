@@ -2,6 +2,8 @@
 
 
 #include "Character/CCharacter.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
 #include "Widgets/ValueGauge.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/WidgetComponent.h"
@@ -108,6 +110,18 @@ UAbilitySystemComponent* ACCharacter::GetAbilitySystemComponent() const
 	return CAbilitySystemComponent;
 }
 
+void ACCharacter::Server_SendGameplayEventToSelf_Implementation(const FGameplayTag& EventTag,
+	const FGameplayEventData& EventData)
+{
+	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, EventTag, EventData);
+}
+
+bool ACCharacter::Server_SendGameplayEventToSelf_Validate(const FGameplayTag& EventTag,
+	const FGameplayEventData& EventData)
+{
+	return true;
+}
+
 bool ACCharacter::IsLocallyControlledByPlayer() const
 {
 	return GetController() != nullptr && GetController()->IsLocalPlayerController();
@@ -118,6 +132,7 @@ void ACCharacter::BindGASChangeDelegates()
 	if (CAbilitySystemComponent)
 	{
 		CAbilitySystemComponent->RegisterGameplayTagEvent(UCAbilitySystemStatics::GetDeadStatsTag()).AddUObject(this, &ACCharacter::DeathTagUpdated);
+		CAbilitySystemComponent->RegisterGameplayTagEvent(UCAbilitySystemStatics::GetStunStatsTag()).AddUObject(this, &ACCharacter::StunTagUpdated);
 	}
 }
 
@@ -130,6 +145,29 @@ void ACCharacter::DeathTagUpdated(const FGameplayTag Tag, int32 NewCount)
 	else
 	{
 		Respawn();
+	}
+}
+
+void ACCharacter::StunTagUpdated(const FGameplayTag Tag, int32 NewCount)
+{
+	if (IsDead())
+	{
+		return;
+	}
+
+	if (NewCount != 0)
+	{
+		// if (CAbilitySystemComponent)
+		// {
+		// 	CAbilitySystemComponent->CancelAllAbilities();
+		// }
+		OnStun();
+		PlayAnimMontage(StunMontage);
+	}
+	else
+	{
+		OnRecoverFromStun();
+		StopAnimMontage(StunMontage);
 	}
 }
 
@@ -179,6 +217,14 @@ void ACCharacter::SetStatusGaugeEnabled(bool bIsEnabled)
 	{
 		OverHeadWidgetComponent->SetHiddenInGame(true);
 	}
+}
+
+void ACCharacter::OnStun()
+{
+}
+
+void ACCharacter::OnRecoverFromStun()
+{
 }
 
 bool ACCharacter::IsDead() const
