@@ -21,6 +21,9 @@ public:
 	void GiveInitialAbilities();
 	void ApplyFullStatEffect();
 	
+	// Get the Abilities that is unique to this character, this DO NOT include generic or basic abilities
+	const TMap<ECAbilityInputID, TSubclassOf<UGameplayAbility>>& GetAbilities() const;
+	
 private:
 	void AuthApplyGameplayEffect(TSubclassOf<UGameplayEffect> GameplayEffect, int Level = 1); 
 	void HealthUpdated(const FOnAttributeChangeData& ChangeData);

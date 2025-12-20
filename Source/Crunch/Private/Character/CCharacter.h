@@ -9,6 +9,7 @@
 #include "GenericTeamAgentInterface.h"
 #include "Abilities/GameplayAbilityTypes.h"
 #include "Components/WidgetComponent.h"
+#include "GAS/CGameplayAbilityTypes.h"
 #include "CCharacter.generated.h"
 
 UCLASS()
@@ -23,6 +24,7 @@ public:
 	void ClientSideInit();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
+	const TMap<ECAbilityInputID, TSubclassOf<UGameplayAbility>>& GetAbilities() const;
 	
 
 protected:

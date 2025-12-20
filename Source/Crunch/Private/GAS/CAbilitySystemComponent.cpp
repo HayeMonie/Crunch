@@ -70,3 +70,8 @@ void UCAbilitySystemComponent::ApplyFullStatEffect()
 	AuthApplyGameplayEffect(FullStatEffect);
 }
 
+const TMap<ECAbilityInputID, TSubclassOf<UGameplayAbility>>& UCAbilitySystemComponent::GetAbilities() const
+{
+	return Abilities;
+}
+
