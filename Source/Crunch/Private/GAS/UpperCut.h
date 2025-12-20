@@ -77,6 +77,11 @@ private:
 	// 新增方法声明的注释：
 	// GetHitResultsFromCapsuleTargetData:
 	// - 功能：使用真实胶囊（Capsule）在世界中做 Overlap 来检测命中目标（替换之前的多球采样近似方法）。
-	// （已撤销胶囊检测实现；使用基类 GetHitResultFromSweepLocationTargetData 带 LocationOffset 的重载）
- 
+	// - 实现要点：
+	//   * 使用 Avatar->GetWorld()->OverlapMultiByChannel + FCollisionShape::MakeCapsule。
+	//   * 以 Avatar 的位置 + LocationOffset 为胶囊中心，半径为 SphereSweepRadius，半高度为 CapsuleHalfHeight。
+	//   * 根据 bIgnoreSelf 决定是否把 Avatar 自身加入忽略列表。
+	//   * 按 Actor 去重并把每个重叠项转换为 FHitResult 返回，供上层 ApplyGameplayEffect 等使用。
+	//   * 当 bDrewDebug 为 true 时，在世界中绘制单个胶囊线框（避免之前多球采样导致的多重 debug）。
+	TArray<FHitResult> GetHitResultsFromCapsuleTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle, float SphereSweepRadius, float CapsuleHalfHeight, ETeamAttitude::Type TargetTeam, bool bDrewDebug, bool bIgnoreSelf, const FVector& LocationOffset) const;
 };
