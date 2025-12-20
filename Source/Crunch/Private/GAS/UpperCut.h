@@ -18,15 +18,36 @@ public:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	UUpperCut();
 
+protected:
+	// 检测相关属性（放在 protected，允许 Blueprint 读写）
+	// TargetSweepSphereRadius:
+	// - 单位：厘米（与 UE 中常用单位一致）
+	// - 语义：用于每次采样时球形 sweep 的半径（即胶囊圆柱段的半径）
+	// - 影响：增大此值会扩大水平/径向覆盖范围，但会影响命中判定精度与性能（更大半径 -> 更大采样覆盖）
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Targeting", meta = (ToolTip = "检测球半径（厘米）。增大可扩大水平覆盖范围）"))
+	float TargetSweepSphereRadius = 80.f;
+	
+	// TargetSweepCapsuleHalfHeight:
+	// - 单位：厘米（半高度）
+	// - 语义：用于描述胶囊几何中圆柱部分的一半高度（两端半球之间半距离）
+	// - 影响：增大该值会“拉长”胶囊的圆柱段（通过采样多个球近似实现），值为 0 时等同于单个球形 sweep
+	// - 注意：本设计通过多次球形 sweep 采样近似胶囊，因此半径与半高度共同决定采样点数与覆盖
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Targeting", meta = (ToolTip = "胶囊半高度（厘米）。增大可拉长圆柱段长度）"))
+	float TargetSweepCapsuleHalfHeight = 120.f;
+	
+	// TargetSweepZOffset:
+	// - 单位：厘米
+	// - 语义：在角色位置基础上沿世界 Up 轴的偏移，用于把检测中心抬高或降低
+	// - 影响：改变检测整体在垂直方向的位置（例如上勾拳需要把检测中心抬高到空中目标）
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Targeting", meta = (ToolTip = "垂直偏移（厘米）。增大该值会把检测中心向上抬高，从而改变检测高度）"))
+	float TargetSweepZOffset = 50.f;
+
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
 	TSubclassOf<UGameplayEffect> LaunchDamageEffect;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
 	TSubclassOf<UGameplayEffect> ComboDamageEffect;
-	
-	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
-	float TargetSweepSphereRadius = 80.f;
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Launch")
 	float UpperCutLaunchSpeed = 1400.f;
@@ -52,4 +73,10 @@ private:
 	void HandleComboDamageEvent(FGameplayEventData EventData);
 
 	FName NextComboName;
+
+	// 新增方法声明的注释：
+	// GetHitResultsFromCapsuleTargetData:
+	// - 功能：使用真实胶囊（Capsule）在世界中做 Overlap 来检测命中目标（替换之前的多球采样近似方法）。
+	// （已撤销胶囊检测实现；使用基类 GetHitResultFromSweepLocationTargetData 带 LocationOffset 的重载）
+ 
 };

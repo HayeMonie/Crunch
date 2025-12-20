@@ -24,6 +24,7 @@ class UAnimInstance* UCGameplayAbility::GetOwnerAnimInstance() const
 UCGameplayAbility::UCGameplayAbility()
 {
 	ActivationBlockedTags.AddTag(UCAbilitySystemStatics::GetStunStatsTag());
+	AvatarCharacter = nullptr;
 }
 
 TArray<FHitResult> UCGameplayAbility::GetHitResultFromSweepLocationTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle,
@@ -78,7 +79,60 @@ TArray<FHitResult> UCGameplayAbility::GetHitResultFromSweepLocationTargetData(co
 
 	return OutResults;
 
-	
+}
+
+TArray<FHitResult> UCGameplayAbility::GetHitResultFromSweepLocationTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle,
+                                                                              float SphereSweepRadius, ETeamAttitude::Type TargetTeam, bool bDrewDebug, bool bIgnoreSelf, const FVector& LocationOffset) const
+{
+	TArray<FHitResult> OutResults;
+	TSet<AActor*> HitActors;
+
+	IGenericTeamAgentInterface* OwnerTeamInterface = Cast<IGenericTeamAgentInterface>(GetAvatarActorFromActorInfo());
+
+	for (const TSharedPtr<FGameplayAbilityTargetData> TargetData : TargetDataHandle.Data)
+	{
+		FVector StartLoc = TargetData->GetOrigin().GetTranslation() + LocationOffset;
+		FVector EndLoc = TargetData->GetEndPoint() + LocationOffset;
+
+		TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+		ObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
+
+		TArray<AActor*> ActorsToIgnore;
+		if (bIgnoreSelf)
+		{
+			ActorsToIgnore.Add(GetAvatarActorFromActorInfo());
+		}
+
+		EDrawDebugTrace::Type DrawDebugTrace = bDrewDebug ? EDrawDebugTrace::ForDuration : EDrawDebugTrace::None;
+
+		TArray<FHitResult> Results;
+		
+		UKismetSystemLibrary::SphereTraceMultiForObjects(this, StartLoc, EndLoc, SphereSweepRadius,
+			ObjectTypes, false, ActorsToIgnore, DrawDebugTrace, Results, false);
+
+		for (const FHitResult& Result : Results)
+		{
+			if (HitActors.Contains(Result.GetActor()))
+			{
+				continue;
+			}
+
+			if (OwnerTeamInterface)
+			{
+				ETeamAttitude::Type OtherActorTeamAttitude = OwnerTeamInterface->GetTeamAttitudeTowards(*Result.GetActor());
+				if (OtherActorTeamAttitude != TargetTeam)
+				{
+					continue;
+				}
+			}
+
+			HitActors.Add(Result.GetActor());
+			OutResults.Add(Result);
+		}
+	}
+
+	return OutResults;
+
 }
 
 void UCGameplayAbility::PushSelf(const FVector& PushVelocity)
