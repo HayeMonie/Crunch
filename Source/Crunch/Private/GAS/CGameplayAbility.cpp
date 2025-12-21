@@ -23,7 +23,7 @@ class UAnimInstance* UCGameplayAbility::GetOwnerAnimInstance() const
 
 UCGameplayAbility::UCGameplayAbility()
 {
-	ActivationBlockedTags.AddTag(UCAbilitySystemStatics::GetStunStatsTag());
+	ActivationBlockedTags.AddTag(UCAbilitySystemStatics::GetStunStatTag());
 }
 
 TArray<FHitResult> UCGameplayAbility::GetHitResultFromSweepLocationTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle,

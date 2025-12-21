@@ -16,14 +16,19 @@ FGameplayTag UCAbilitySystemStatics::GetBasicAttackInputPressedTag()
 	return FGameplayTag::RequestGameplayTag("Ability.BasicAttack.Pressed");
 }
 
-FGameplayTag UCAbilitySystemStatics::GetDeadStatsTag()
+FGameplayTag UCAbilitySystemStatics::GetDeadStatTag()
 {
 	return FGameplayTag::RequestGameplayTag("Stats.Dead");
 }
 
-FGameplayTag UCAbilitySystemStatics::GetStunStatsTag()
+FGameplayTag UCAbilitySystemStatics::GetStunStatTag()
 {
 	return FGameplayTag::RequestGameplayTag("Stats.Stun");
+}
+
+FGameplayTag UCAbilitySystemStatics::GetAimStatTag()
+{
+	return FGameplayTag::RequestGameplayTag("Stats.Aim");
 }
 
 float UCAbilitySystemStatics::GetStaticCooldownDurationForAbility(const UGameplayAbility* Ability)

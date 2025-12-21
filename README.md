@@ -1,5 +1,5 @@
 # UE5.6 Multiplayer MOBA Game with GAS and AWS Server
-## Start Date: 2026.11.20
+## Start Date: 2026.11.23
 
 ## 飞书云笔记链接：
 - 笔记原由Obsidian配合AI摘写，使用Markdown语法与Obsidian的部分插件，所以在搬迁至飞书云文档的时候会保留部分突兀的符号与单词。
@@ -19,7 +19,7 @@
 
 - ### 01 - Introduction : *2025.11.23*
 
-- ### 02 - Basic Character Movement Control and Animations : *2025.11.29*
+- ### 02 - Basic Character Movement Control and Animations : *2025.11.25*
 
 - ### 03 - Integrate Gameplay Ability System to the Character : *2025.11.30*
 

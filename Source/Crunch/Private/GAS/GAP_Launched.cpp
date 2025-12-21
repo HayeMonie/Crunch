@@ -13,7 +13,7 @@ UGAP_Launched::UGAP_Launched()
 	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 	TriggerData.TriggerTag = GetLaunchedAbilityActivationTag();
 
-	ActivationBlockedTags.RemoveTag(UCAbilitySystemStatics::GetStunStatsTag());
+	ActivationBlockedTags.RemoveTag(UCAbilitySystemStatics::GetStunStatTag());
 	AbilityTriggers.Add(TriggerData);
 }
 

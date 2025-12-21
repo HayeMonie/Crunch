@@ -136,8 +136,9 @@ void ACCharacter::BindGASChangeDelegates()
 {
 	if (CAbilitySystemComponent)
 	{
-		CAbilitySystemComponent->RegisterGameplayTagEvent(UCAbilitySystemStatics::GetDeadStatsTag()).AddUObject(this, &ACCharacter::DeathTagUpdated);
-		CAbilitySystemComponent->RegisterGameplayTagEvent(UCAbilitySystemStatics::GetStunStatsTag()).AddUObject(this, &ACCharacter::StunTagUpdated);
+		CAbilitySystemComponent->RegisterGameplayTagEvent(UCAbilitySystemStatics::GetDeadStatTag()).AddUObject(this, &ACCharacter::DeathTagUpdated);
+		CAbilitySystemComponent->RegisterGameplayTagEvent(UCAbilitySystemStatics::GetStunStatTag()).AddUObject(this, &ACCharacter::StunTagUpdated);
+		CAbilitySystemComponent->RegisterGameplayTagEvent(UCAbilitySystemStatics::GetAimStatTag()).AddUObject(this, &ACCharacter::AimTagUpdated);
 	}
 }
 
@@ -174,6 +175,23 @@ void ACCharacter::StunTagUpdated(const FGameplayTag Tag, int32 NewCount)
 		OnRecoverFromStun();
 		StopAnimMontage(StunMontage);
 	}
+}
+
+void ACCharacter::AimTagUpdated(const FGameplayTag Tag, int32 NewCount)
+{
+	SetIsAiming(NewCount != 0);
+}
+
+void ACCharacter::SetIsAiming(bool bIsAiming)
+{
+	bUseControllerRotationYaw = bIsAiming;
+	GetCharacterMovement()->bOrientRotationToMovement = !bIsAiming;
+	OnAimStateChanged(bIsAiming);
+}
+
+void ACCharacter::OnAimStateChanged(bool bIsAiming)
+{
+	// Override in child class
 }
 
 void ACCharacter::ConfigureOverHeadStatusWidget()
@@ -234,14 +252,14 @@ void ACCharacter::OnRecoverFromStun()
 
 bool ACCharacter::IsDead() const
 {
-	return GetAbilitySystemComponent()->HasMatchingGameplayTag(UCAbilitySystemStatics::GetDeadStatsTag());  
+	return GetAbilitySystemComponent()->HasMatchingGameplayTag(UCAbilitySystemStatics::GetDeadStatTag());  
 }
 
 void ACCharacter::RespawnImmediately()
 {
 	if (HasAuthority())  
 	{
-		GetAbilitySystemComponent()->RemoveActiveEffectsWithGrantedTags(FGameplayTagContainer(UCAbilitySystemStatics::GetDeadStatsTag()));  
+		GetAbilitySystemComponent()->RemoveActiveEffectsWithGrantedTags(FGameplayTagContainer(UCAbilitySystemStatics::GetDeadStatTag()));  
 	}
 }
 

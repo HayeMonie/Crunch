@@ -47,8 +47,8 @@ void ACAIController::OnPossess(APawn* NewPawn)
 	UAbilitySystemComponent* PawnASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(NewPawn);
 	if (PawnASC)
 	{
-		PawnASC->RegisterGameplayTagEvent(UCAbilitySystemStatics::GetDeadStatsTag()).AddUObject(this, &ACAIController::PawnDeadTagUpdated);
-		PawnASC->RegisterGameplayTagEvent(UCAbilitySystemStatics::GetStunStatsTag()).AddUObject(this, &ACAIController::PawnStunTagUpdated);
+		PawnASC->RegisterGameplayTagEvent(UCAbilitySystemStatics::GetDeadStatTag()).AddUObject(this, &ACAIController::PawnDeadTagUpdated);
+		PawnASC->RegisterGameplayTagEvent(UCAbilitySystemStatics::GetStunStatTag()).AddUObject(this, &ACAIController::PawnStunTagUpdated);
 	}
 }
 
@@ -141,7 +141,7 @@ void ACAIController::ForgetActorIfDead(AActor* ActorToForget)
 		return;
 	}
 
-	if (ActorASC->HasMatchingGameplayTag(UCAbilitySystemStatics::GetDeadStatsTag()))
+	if (ActorASC->HasMatchingGameplayTag(UCAbilitySystemStatics::GetDeadStatTag()))
 	{
 		for (UAIPerceptionComponent::TActorPerceptionContainer::TIterator Iter = AIPerceptionComponent->GetPerceptualDataIterator(); Iter; ++Iter)
 		{

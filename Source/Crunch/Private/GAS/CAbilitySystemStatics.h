@@ -20,8 +20,10 @@ public:
 	static FGameplayTag GetBasicAttackAbilityTag();
 	static FGameplayTag GetBasicAttackInputPressedTag();
 	
-	static FGameplayTag GetDeadStatsTag();
-	static FGameplayTag GetStunStatsTag();
+	static FGameplayTag GetDeadStatTag();
+	static FGameplayTag GetStunStatTag();
+
+	static FGameplayTag GetAimStatTag();
 
 	static float GetStaticCooldownDurationForAbility(const UGameplayAbility* Ability);
 	static float GetStaticCostForAbility(const UGameplayAbility* Ability);
