@@ -32,3 +32,5 @@
 - ### 07 - Create the Minions with AI Perception and Behavior : *2025.12.18*
 
 - ### 08 - The Upper Cut Ability : *2025.12.20*
+
+- ### 09 - Implement the Ability Gauge Widget : *2025.12.21*

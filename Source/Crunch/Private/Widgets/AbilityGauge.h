@@ -44,9 +44,16 @@ public:
 private:
 	UPROPERTY(EditDefaultsOnly, Category = "Visual")
 	float CooldownUpdateInterval {0.1f};
+
+	// 是否在倒计时大于1秒时显示小数部分
+	UPROPERTY(EditDefaultsOnly, Category = "Visual")
+	bool bShowDecimalsWhenAboveOneSecond {false};
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Visual")
 	FName IconMaterialParameterName {"Icon"};
+	
+	UPROPERTY(EditDefaultsOnly, Category = "Visual")
+	FName CooldownPercentParamName {"Percent"};
 	
 	UPROPERTY(meta = (BindWidget))
 	class UImage* Icon;

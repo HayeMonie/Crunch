@@ -49,12 +49,12 @@ void UAbilityGauge::ConfigureWithWidgetData(const FAbilityWidgetData* WidgetData
 			UMaterialInstanceDynamic* DynamicMaterial = Icon->GetDynamicMaterial();
 			if (!DynamicMaterial)
 			{
-				// 如果没有动态材质，直接设置纹理
+				// 如果没有动态材质,直接设置纹理
 				Icon->SetBrushFromTexture(IconTexture);
 			}
 			else
 			{
-				// 如果有动态材质，通过参数设置
+				// 如果有动态材质,通过参数设置
 				DynamicMaterial->SetTextureParameterValue(IconMaterialParameterName, IconTexture);
 			}
 		}
@@ -89,14 +89,44 @@ void UAbilityGauge::StartCooldown(float CooldownTimeRemaining, float CooldownDur
 void UAbilityGauge::CooldownFinished()
 {
 	CachedCooldownDuration = CachedCooldownTimeRemaining = 0.f;
-	GetWorld()->GetTimerManager().ClearTimer(CooldownTimerUpdateHandle);
 	CooldownCounterText->SetVisibility(ESlateVisibility::Hidden);
+	GetWorld()->GetTimerManager().ClearTimer(CooldownTimerUpdateHandle);
+	
+	if (Icon)
+	{
+		UMaterialInstanceDynamic* DynamicMaterial = Icon->GetDynamicMaterial();
+		if (DynamicMaterial)
+		{
+			DynamicMaterial->SetScalarParameterValue(CooldownPercentParamName, 1.f);
+		}
+	}
 }
 
 void UAbilityGauge::UpdateCooldown()
 {
 	CachedCooldownTimeRemaining -= CooldownUpdateInterval;
 
-	FNumberFormattingOptions* FormattingOptions = CachedCooldownTimeRemaining > 1 ? &WholeNumberFormattingOptions : &TwoDigitNumberFormattingOptions;
+	// 根据选项决定是否显示小数部分
+	FNumberFormattingOptions* FormattingOptions = nullptr;
+	if (CachedCooldownTimeRemaining > 1.0f && !bShowDecimalsWhenAboveOneSecond)
+	{
+		// 大于1秒且不显示小数,使用整数格式
+		FormattingOptions = &WholeNumberFormattingOptions;
+	}
+	else
+	{
+		// 小于等于1秒或需要显示小数,使用2位小数格式
+		FormattingOptions = &TwoDigitNumberFormattingOptions;
+	}
+	
 	CooldownCounterText->SetText(FText::AsNumber(CachedCooldownTimeRemaining, FormattingOptions));
+
+	if (Icon)
+	{
+		UMaterialInstanceDynamic* DynamicMaterial = Icon->GetDynamicMaterial();
+		if (DynamicMaterial)
+		{
+			DynamicMaterial->SetScalarParameterValue(CooldownPercentParamName, 1.f - CachedCooldownTimeRemaining / CachedCooldownDuration);
+		}
+	}
 }
