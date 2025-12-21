@@ -10,6 +10,9 @@
 UUpperCut::UUpperCut()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	FGameplayTagContainer AssetTags;
+	AssetTags.AddTag(UCAbilitySystemStatics::GetBasicAttackAbilityTag());
+	SetAssetTags(AssetTags);
 	BlockAbilitiesWithTag.AddTag(UCAbilitySystemStatics::GetBasicAttackAbilityTag());
 }
 

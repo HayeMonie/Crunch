@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
+#include "Abilities/GameplayAbility.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "CAbilitySystemStatics.generated.h"
 
@@ -22,6 +23,8 @@ public:
 	static FGameplayTag GetDeadStatsTag();
 	static FGameplayTag GetStunStatsTag();
 
+	static float GetStaticCooldownDurationForAbility(const UGameplayAbility* Ability);
+	static float GetStaticCostForAbility(const UGameplayAbility* Ability);
 	
 	
 	

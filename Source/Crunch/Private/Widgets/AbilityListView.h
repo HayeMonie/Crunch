@@ -19,5 +19,14 @@ class UAbilityListView : public UListView
 
 public:
 	void ConfigureAbilities(const TMap<ECAbilityInputID, TSubclassOf<UGameplayAbility>>& Abilities);
+
+private:
+	UPROPERTY(EditAnywhere, Category = "Data")
+	UDataTable* AbilityDataTable;
+
+	void AbilityGaugeGenerated(UUserWidget& Widget);
+
+	const struct FAbilityWidgetData* FindWidgetDataForAbility(const TSubclassOf<UGameplayAbility>& AbilityClass) const;
+
 	
 };
