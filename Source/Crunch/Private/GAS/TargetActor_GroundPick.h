@@ -13,5 +13,34 @@ UCLASS()
 class ATargetActor_GroundPick : public AGameplayAbilityTargetActor
 {
 	GENERATED_BODY()
+
+public:
+	virtual void ConfirmTargetingAndContinue() override;
+	
+	ATargetActor_GroundPick();
+
+	void SetTargetAreaRadius(float NewRadius);
+	FORCEINLINE void SetTargetTraceRange(float NewRange) { TargetTraceRange = NewRange; };
+
+	void SetTargetOptions(bool bTargetFriendly, bool bTargetEnemy =  true);
+	FORCEINLINE void SetShouldDrawDebug(bool bDrawDebug) { bShouldDrawDebug = bDrawDebug; };
+
+protected:
+	bool bShouldTargetEnemy = true;
+	bool bShouldTargetFriendly = false;
+	
+	virtual void Tick(float DeltaTime) override;
+
+	FVector GetTargetPoint()  const;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
+	float TargetAreaRadius {300.f};
+
+	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
+	float TargetTraceRange {2000.f};
+
+	bool bShouldDrawDebug {false};
 	
 };
+
+

@@ -2,7 +2,7 @@
 
 
 #include "Character/CCharacter.h"
-
+#include "Crunch/Crunch.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Widgets/ValueGauge.h"
 #include "Components/CapsuleComponent.h"
@@ -25,6 +25,8 @@ ACCharacter::ACCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_SpringArm, ECR_Ignore);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Target, ECR_Ignore);
 
 	CAbilitySystemComponent = CreateDefaultSubobject<UCAbilitySystemComponent>(TEXT("CAbilitySystemComponent"));
 	CAttributeSet = CreateDefaultSubobject<UCAttributeSet>(TEXT("CAttribute Set"));

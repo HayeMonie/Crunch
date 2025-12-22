@@ -25,6 +25,9 @@ public:
 
 	static FGameplayTag GetAimStatTag();
 
+	static FGameplayTag GetCameraShakeGameplayCueTag();
+	
+
 	static float GetStaticCooldownDurationForAbility(const UGameplayAbility* Ability);
 	static float GetStaticCostForAbility(const UGameplayAbility* Ability);
 	

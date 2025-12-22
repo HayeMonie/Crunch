@@ -26,8 +26,9 @@ protected:
 	UFUNCTION()
 	FORCEINLINE bool ShouldDrawDebug() const { return bShouldDrawDebug; }
 	void PushSelf(const FVector& PushVelocity);
-
 	void PushTarget(AActor* Target, const FVector& PushVelocity);
+	void PushTargets(const TArray<AActor*>& Targets, const FVector& PushVel);
+	void PushTargets(const FGameplayAbilityTargetDataHandle& TargetDataHandle, const FVector& PushVel);
 
 	ACharacter* GetOwningAvatarCharacter();
 	void ApplyGameplayEffectToHitResultActor(const FHitResult& HitResult, TSubclassOf<UGameplayEffect> GameplayEffect, int Level = 1);

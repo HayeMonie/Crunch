@@ -10,6 +10,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "EnhancedInputComponent.h"
+#include "Crunch/Crunch.h"
 #include "GAS/CAbilitySystemStatics.h"
 
 ACPlayerCharacter::ACPlayerCharacter()
@@ -17,6 +18,7 @@ ACPlayerCharacter::ACPlayerCharacter()
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("Camera Boom"));
 	CameraBoom->SetupAttachment(GetRootComponent());
 	CameraBoom->bUsePawnControlRotation = true;
+	CameraBoom->ProbeChannel = ECC_SpringArm;
 
 	ViewCam = CreateDefaultSubobject<UCameraComponent>(TEXT("View Cam"));
 	ViewCam->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
