@@ -34,3 +34,5 @@
 - ### 08 - The Upper Cut Ability : *2025.12.20*
 
 - ### 09 - Implement the Ability Gauge Widget : *2025.12.21*
+
+- ### 10 - The Ground Blast Ability : *2025.12.23*

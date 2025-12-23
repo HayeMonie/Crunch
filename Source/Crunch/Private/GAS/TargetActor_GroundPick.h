@@ -25,7 +25,10 @@ public:
 	void SetTargetOptions(bool bTargetFriendly, bool bTargetEnemy =  true);
 	FORCEINLINE void SetShouldDrawDebug(bool bDrawDebug) { bShouldDrawDebug = bDrawDebug; };
 
-protected:
+private:
+	UPROPERTY(VisibleDefaultsOnly, Category = "Visual")
+	class UDecalComponent* DecalComp;
+	
 	bool bShouldTargetEnemy = true;
 	bool bShouldTargetFriendly = false;
 	
