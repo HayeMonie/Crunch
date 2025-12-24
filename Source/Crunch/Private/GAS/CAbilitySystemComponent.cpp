@@ -2,8 +2,9 @@
 
 
 #include "GAS/CAbilitySystemComponent.h"
-
+#include "GAS/CGameplayAbilityTypes.h"
 #include "CAttributeSet.h"
+#include "CHeroAttributeSet.h"
 
 UCAbilitySystemComponent::UCAbilitySystemComponent()
 {
@@ -11,6 +12,46 @@ UCAbilitySystemComponent::UCAbilitySystemComponent()
 	GenericConfirmInputID = (int32)ECAbilityInputID::Confirm;
 	GenericCancelInputID = (int32)ECAbilityInputID::Cancel;
 	
+}
+
+void UCAbilitySystemComponent::InitializeBaseAttributes()
+{
+	if (!BaseStatsDataTable || !GetOwner())
+	{
+		return;
+	}
+
+	const FHeroBaseStats* BaseStats = nullptr;
+	for (const TPair<FName, uint8*>& DataPair : BaseStatsDataTable->GetRowMap())
+	{
+		BaseStats = BaseStatsDataTable->FindRow<FHeroBaseStats>(DataPair.Key, "");
+		if (BaseStats && BaseStats->Class == GetOwner()->GetClass())
+		{
+			break;
+		}
+	}
+
+	if (BaseStats)
+	{
+		SetNumericAttributeBase(UCAttributeSet::GetMaxHealthAttribute(), BaseStats->BaseMaxHealth);
+		SetNumericAttributeBase(UCAttributeSet::GetMaxManaAttribute(), BaseStats->BaseMaxMana);
+		SetNumericAttributeBase(UCAttributeSet::GetAttackDamageAttribute(), BaseStats->BaseAttackDamage);
+		SetNumericAttributeBase(UCAttributeSet::GetArmorAttribute(), BaseStats->BaseArmor);
+		SetNumericAttributeBase(UCAttributeSet::GetMoveSpeedAttribute(), BaseStats->BaseMoveSpeed);
+
+		SetNumericAttributeBase(UCHeroAttributeSet::GetStrengthAttribute(), BaseStats->Strength);
+		SetNumericAttributeBase(UCHeroAttributeSet::GetIntelligenceAttribute(), BaseStats->Intelligence);
+		SetNumericAttributeBase(UCHeroAttributeSet::GetStrengthGrowthRateAttribute(), BaseStats->StrengthGrowthRate);
+		SetNumericAttributeBase(UCHeroAttributeSet::GetIntelligenceGrowthRateAttribute(), BaseStats->IntelligenceGrowthRate);
+	}
+}
+
+void UCAbilitySystemComponent::ServerSideInit()
+{
+	InitializeBaseAttributes();
+	
+	ApplyInitialEffects();
+	GiveInitialAbilities();
 }
 
 void UCAbilitySystemComponent::ApplyInitialEffects()

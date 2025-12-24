@@ -17,14 +17,16 @@ class CRUNCH_API UCAbilitySystemComponent : public UAbilitySystemComponent
 
 public:
 	UCAbilitySystemComponent();
-	void ApplyInitialEffects();
-	void GiveInitialAbilities();
+	void InitializeBaseAttributes();
+	void ServerSideInit();
 	void ApplyFullStatEffect();
 	
 	// Get the Abilities that is unique to this character, this DO NOT include generic or basic abilities
 	const TMap<ECAbilityInputID, TSubclassOf<UGameplayAbility>>& GetAbilities() const;
 	
 private:
+	void ApplyInitialEffects();
+	void GiveInitialAbilities();
 	void AuthApplyGameplayEffect(TSubclassOf<UGameplayEffect> GameplayEffect, int Level = 1); 
 	void HealthUpdated(const FOnAttributeChangeData& ChangeData);
 
@@ -43,5 +45,7 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "Gameplay Abilities")
 	TMap<ECAbilityInputID, TSubclassOf<UGameplayAbility>> BasicAbilities;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Base Stats")
+	UDataTable* BaseStatsDataTable;
 	
 };
