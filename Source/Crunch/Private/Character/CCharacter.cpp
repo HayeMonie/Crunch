@@ -10,6 +10,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GAS/CAbilitySystemComponent.h"
 #include "GAS/CAttributeSet.h"
+#include "GAS/CHeroAttributeSet.h"
 #include "GAS/CAbilitySystemStatics.h"
 #include "Kismet/GameplayStatics.h"
 #include "Perception/AISense_Sight.h"
@@ -30,6 +31,7 @@ ACCharacter::ACCharacter()
 
 	CAbilitySystemComponent = CreateDefaultSubobject<UCAbilitySystemComponent>(TEXT("CAbilitySystemComponent"));
 	CAttributeSet = CreateDefaultSubobject<UCAttributeSet>(TEXT("CAttribute Set"));
+	CHeroAttributeSet = CreateDefaultSubobject<UCHeroAttributeSet>(TEXT("CHeroAttributeSet"));
 
 	// OverHeadWidgetComponent = CreateDefaultSubobject<UWidgetComponent>(TEXT("Over Head Widget Component"));
 	// OverHeadWidgetComponent->SetupAttachment(GetRootComponent());

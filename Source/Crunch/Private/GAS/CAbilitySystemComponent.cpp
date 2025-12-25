@@ -2,13 +2,18 @@
 
 
 #include "GAS/CAbilitySystemComponent.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
+#include "GAS/CHeroAttributeSet.h"
+#include "CAbilitySystemStatics.h"
 #include "GAS/CGameplayAbilityTypes.h"
 #include "CAttributeSet.h"
-#include "CHeroAttributeSet.h"
+#include "GameplayEffectExtension.h"
 
 UCAbilitySystemComponent::UCAbilitySystemComponent()
 {
 	GetGameplayAttributeValueChangeDelegate(UCAttributeSet::GetHealthAttribute()).AddUObject(this, &UCAbilitySystemComponent::HealthUpdated);
+	GetGameplayAttributeValueChangeDelegate(UCAttributeSet::GetManaAttribute()).AddUObject(this, &UCAbilitySystemComponent::ManaUpdated);
 	GenericConfirmInputID = (int32)ECAbilityInputID::Confirm;
 	GenericCancelInputID = (int32)ECAbilityInputID::Cancel;
 	
@@ -85,6 +90,10 @@ void UCAbilitySystemComponent::GiveInitialAbilities()
 		GiveAbility(FGameplayAbilitySpec(AbilityPair.Value, 1, (int32)AbilityPair.Key, nullptr));
 	}
 
+	for (const TSubclassOf<UGameplayAbility>& PassiveAbility : PassiveAbilities)
+	{
+		GiveAbility(FGameplayAbilitySpec(PassiveAbility, 1, -1, nullptr));
+	}
 }
 
 void UCAbilitySystemComponent::AuthApplyGameplayEffect(TSubclassOf<UGameplayEffect> GameplayEffect, int Level)
@@ -98,15 +107,83 @@ void UCAbilitySystemComponent::AuthApplyGameplayEffect(TSubclassOf<UGameplayEffe
 
 void UCAbilitySystemComponent::HealthUpdated(const FOnAttributeChangeData& ChangeData)
 {
-	if (!GetOwner())
+	if (!GetOwner() || !GetOwner()->HasAuthority())
 	{
 		return;
 	}
 
-	if (ChangeData.NewValue <= 0 && GetOwner()->HasAuthority() && DeathEffect)
+	bool bFound = false;
+	float MaxHealth = GetGameplayAttributeValue(UCAttributeSet::GetMaxHealthAttribute(), bFound);
+	if (bFound && ChangeData.NewValue >= MaxHealth)
 	{
-		AuthApplyGameplayEffect(DeathEffect);
+		if (!HasMatchingGameplayTag(UCAbilitySystemStatics::GetHealthFullStatTag()))
+		{
+			AddLooseGameplayTag(UCAbilitySystemStatics::GetHealthFullStatTag());
+		}
 	}
+	else
+	{
+		RemoveLooseGameplayTag(UCAbilitySystemStatics::GetHealthFullStatTag());	
+	}
+
+	if (ChangeData.NewValue <= 0)
+	{
+		if (!HasMatchingGameplayTag(UCAbilitySystemStatics::GetHealthFullStatTag()))
+		{
+			AddLooseGameplayTag(UCAbilitySystemStatics::GetHealthEmptyStatTag());
+
+			if (DeathEffect)
+			{
+				AuthApplyGameplayEffect(DeathEffect);
+			}
+
+			FGameplayEventData DeadAbilityEventData;
+			if (ChangeData.GEModData)
+			{
+				DeadAbilityEventData.ContextHandle = ChangeData.GEModData->EffectSpec.GetContext();	
+			}
+
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(GetOwner(), UCAbilitySystemStatics::GetDeadStatTag(), DeadAbilityEventData);
+		}
+	}
+	else
+	{
+		RemoveLooseGameplayTag(UCAbilitySystemStatics::GetHealthEmptyStatTag());
+	}
+}
+
+void UCAbilitySystemComponent::ManaUpdated(const FOnAttributeChangeData& ChangeData)
+{
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+	{
+		return;
+	}
+
+	bool bFound = false;
+	float MaxMana = GetGameplayAttributeValue(UCAttributeSet::GetMaxManaAttribute(), bFound);
+	if (bFound && ChangeData.NewValue >= MaxMana)
+	{
+		if (!HasMatchingGameplayTag(UCAbilitySystemStatics::GetManaFullStatTag()))
+		{
+			AddLooseGameplayTag(UCAbilitySystemStatics::GetManaFullStatTag());
+		}
+	}
+	else
+	{
+		RemoveLooseGameplayTag(UCAbilitySystemStatics::GetManaFullStatTag());	
+	}
+
+	if (ChangeData.NewValue <= 0)
+	{
+		if (!HasMatchingGameplayTag(UCAbilitySystemStatics::GetManaFullStatTag()))
+		{
+			AddLooseGameplayTag(UCAbilitySystemStatics::GetManaEmptyStatTag());
+		}
+	}
+	else
+	{
+		RemoveLooseGameplayTag(UCAbilitySystemStatics::GetManaEmptyStatTag());
+	}	
 }
 
 void UCAbilitySystemComponent::ApplyFullStatEffect()

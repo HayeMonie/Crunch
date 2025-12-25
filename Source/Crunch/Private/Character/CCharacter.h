@@ -62,6 +62,9 @@ private:
 	UPROPERTY(VisibleDefaultsOnly, Category = "Gameplay Ability")
 	class UCAttributeSet* CAttributeSet;
 
+	UPROPERTY(VisibleDefaultsOnly, Category = "Gameplay Ability")
+	class UCHeroAttributeSet* CHeroAttributeSet;
+
 	/*****************************************************************************************/
 	/*                                         UI                                            */
 	/*****************************************************************************************/
