@@ -135,7 +135,17 @@ ACharacter* UCGameplayAbility::GetOwningAvatarCharacter()
 void UCGameplayAbility::ApplyGameplayEffectToHitResultActor(const FHitResult& HitResult,
 	TSubclassOf<UGameplayEffect> GameplayEffect, int Level)
 {
+	if (!GameplayEffect || !HitResult.GetActor())
+	{
+		return;
+	}
+
 	FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingGameplayEffectSpec(GameplayEffect, Level);
+
+	if (!EffectSpecHandle.IsValid() || !EffectSpecHandle.Data.IsValid())
+	{
+		return;
+	}
 
 	FGameplayEffectContextHandle EffectContext = MakeEffectContext(GetCurrentAbilitySpecHandle(), GetCurrentActorInfo());
 	EffectContext.AddHitResult(HitResult);

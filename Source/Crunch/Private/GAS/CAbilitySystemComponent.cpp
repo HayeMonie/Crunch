@@ -9,11 +9,13 @@
 #include "GAS/CGameplayAbilityTypes.h"
 #include "CAttributeSet.h"
 #include "GameplayEffectExtension.h"
+#include "PA_AbilitySystemGenerics.h"
 
 UCAbilitySystemComponent::UCAbilitySystemComponent()
 {
 	GetGameplayAttributeValueChangeDelegate(UCAttributeSet::GetHealthAttribute()).AddUObject(this, &UCAbilitySystemComponent::HealthUpdated);
 	GetGameplayAttributeValueChangeDelegate(UCAttributeSet::GetManaAttribute()).AddUObject(this, &UCAbilitySystemComponent::ManaUpdated);
+	GetGameplayAttributeValueChangeDelegate(UCHeroAttributeSet::GetExperienceAttribute()).AddUObject(this, &UCAbilitySystemComponent::ExperienceUpdated);
 	GenericConfirmInputID = (int32)ECAbilityInputID::Confirm;
 	GenericCancelInputID = (int32)ECAbilityInputID::Cancel;
 	
@@ -21,12 +23,14 @@ UCAbilitySystemComponent::UCAbilitySystemComponent()
 
 void UCAbilitySystemComponent::InitializeBaseAttributes()
 {
-	if (!BaseStatsDataTable || !GetOwner())
+	if (!AbilitySystemGenerics|| !AbilitySystemGenerics->GetBaseStatsDataTable() || !GetOwner())
 	{
 		return;
 	}
 
+	const UDataTable* BaseStatsDataTable = AbilitySystemGenerics->GetBaseStatsDataTable();
 	const FHeroBaseStats* BaseStats = nullptr;
+	
 	for (const TPair<FName, uint8*>& DataPair : BaseStatsDataTable->GetRowMap())
 	{
 		BaseStats = BaseStatsDataTable->FindRow<FHeroBaseStats>(DataPair.Key, "");
@@ -49,6 +53,20 @@ void UCAbilitySystemComponent::InitializeBaseAttributes()
 		SetNumericAttributeBase(UCHeroAttributeSet::GetStrengthGrowthRateAttribute(), BaseStats->StrengthGrowthRate);
 		SetNumericAttributeBase(UCHeroAttributeSet::GetIntelligenceGrowthRateAttribute(), BaseStats->IntelligenceGrowthRate);
 	}
+
+	const FRealCurve* ExperienceCurve = AbilitySystemGenerics->GetExperienceCurve();
+	if (ExperienceCurve)
+	{
+		int MaxLevel = ExperienceCurve->GetNumKeys();
+		SetNumericAttributeBase(UCHeroAttributeSet::GetMaxLevelAttribute(), MaxLevel);
+
+		float MaxExp = ExperienceCurve->GetKeyValue(ExperienceCurve->GetLastKeyHandle());
+		SetNumericAttributeBase(UCHeroAttributeSet::GetMaxLevelExperienceAttribute(), MaxExp);
+
+		UE_LOG(LogTemp, Warning, TEXT("Max Level is: %d, Max Experience is: %f"), MaxLevel, MaxExp);
+	}
+
+	ExperienceUpdated(FOnAttributeChangeData());
 }
 
 void UCAbilitySystemComponent::ServerSideInit()
@@ -65,8 +83,13 @@ void UCAbilitySystemComponent::ApplyInitialEffects()
 	{
 		return;
 	}
+
+	if (!AbilitySystemGenerics)
+	{
+		return;
+	}
 	
-	for (const TSubclassOf<UGameplayEffect>& EffectClass : InitialEffects)
+	for (const TSubclassOf<UGameplayEffect>& EffectClass : AbilitySystemGenerics->GetInitialEffects())
 	{
 		FGameplayEffectSpecHandle EffectSpecHandle = MakeOutgoingSpec(EffectClass, 1, MakeEffectContext());
 		ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
@@ -90,7 +113,12 @@ void UCAbilitySystemComponent::GiveInitialAbilities()
 		GiveAbility(FGameplayAbilitySpec(AbilityPair.Value, 1, (int32)AbilityPair.Key, nullptr));
 	}
 
-	for (const TSubclassOf<UGameplayAbility>& PassiveAbility : PassiveAbilities)
+	if (!AbilitySystemGenerics)
+	{
+		return;
+	}
+
+	for (const TSubclassOf<UGameplayAbility>& PassiveAbility : AbilitySystemGenerics->GetPassiveAbilities())
 	{
 		GiveAbility(FGameplayAbilitySpec(PassiveAbility, 1, -1, nullptr));
 	}
@@ -128,13 +156,13 @@ void UCAbilitySystemComponent::HealthUpdated(const FOnAttributeChangeData& Chang
 
 	if (ChangeData.NewValue <= 0)
 	{
-		if (!HasMatchingGameplayTag(UCAbilitySystemStatics::GetHealthFullStatTag()))
+		if (!HasMatchingGameplayTag(UCAbilitySystemStatics::GetHealthEmptyStatTag()))
 		{
 			AddLooseGameplayTag(UCAbilitySystemStatics::GetHealthEmptyStatTag());
 
-			if (DeathEffect)
+			if (AbilitySystemGenerics && AbilitySystemGenerics->GetDeathEffect())
 			{
-				AuthApplyGameplayEffect(DeathEffect);
+				AuthApplyGameplayEffect(AbilitySystemGenerics->GetDeathEffect());
 			}
 
 			FGameplayEventData DeadAbilityEventData;
@@ -175,7 +203,7 @@ void UCAbilitySystemComponent::ManaUpdated(const FOnAttributeChangeData& ChangeD
 
 	if (ChangeData.NewValue <= 0)
 	{
-		if (!HasMatchingGameplayTag(UCAbilitySystemStatics::GetManaFullStatTag()))
+		if (!HasMatchingGameplayTag(UCAbilitySystemStatics::GetManaEmptyStatTag()))
 		{
 			AddLooseGameplayTag(UCAbilitySystemStatics::GetManaEmptyStatTag());
 		}
@@ -183,16 +211,85 @@ void UCAbilitySystemComponent::ManaUpdated(const FOnAttributeChangeData& ChangeD
 	else
 	{
 		RemoveLooseGameplayTag(UCAbilitySystemStatics::GetManaEmptyStatTag());
-	}	
+	}
+}
+
+void UCAbilitySystemComponent::ExperienceUpdated(const FOnAttributeChangeData& ChangeData)
+{
+	if (!GetOwner() || !GetOwner()->HasAuthority())
+	{
+		return;
+	}
+
+	if (IsAtMaxLevel())
+	{
+		return;
+	}
+
+	if (!AbilitySystemGenerics)
+	{
+		return;
+	}
+	
+	float CurrentExperience = ChangeData.NewValue;
+
+	const FRealCurve* ExperienceCurve = AbilitySystemGenerics->GetExperienceCurve();
+	if (!ExperienceCurve)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Experience Curve Data is null!"));
+		return;
+	}
+
+	float PrevLevelExp = 0.f;
+	float NextLevelExp = 0.f;
+	float NewLevel = 1.f;
+
+	for (auto Iter = ExperienceCurve->GetKeyHandleIterator(); Iter; ++Iter)
+	{
+		float ExperienceToReachLevel = ExperienceCurve->GetKeyValue(*Iter);
+		if (CurrentExperience < ExperienceToReachLevel)
+		{
+			NextLevelExp = ExperienceToReachLevel;
+			break;
+		}
+
+		PrevLevelExp = ExperienceToReachLevel;
+		NewLevel = Iter.GetIndex() + 1;
+	}
+
+	float CurrentLevel = GetNumericAttributeBase(UCHeroAttributeSet::GetLevelAttribute());
+	float CurrentUpgradePoint = GetNumericAttributeBase(UCHeroAttributeSet::GetUpgradePointAttribute());
+
+	float LevelUpgraded = NewLevel - CurrentLevel;
+	float NewUpgradePoint = CurrentUpgradePoint + LevelUpgraded;
+
+	SetNumericAttributeBase(UCHeroAttributeSet::GetLevelAttribute(), NewLevel);
+	SetNumericAttributeBase(UCHeroAttributeSet::GetPrevLevelExperienceAttribute(), PrevLevelExp);
+	SetNumericAttributeBase(UCHeroAttributeSet::GetNextLevelExperienceAttribute(), NextLevelExp);
+	SetNumericAttributeBase(UCHeroAttributeSet::GetUpgradePointAttribute(), NewUpgradePoint);
+
 }
 
 void UCAbilitySystemComponent::ApplyFullStatEffect()
 {
-	AuthApplyGameplayEffect(FullStatEffect);
+	if (!AbilitySystemGenerics)
+	{
+		return;
+	}
+	AuthApplyGameplayEffect(AbilitySystemGenerics->GetFullStatEffect());
 }
 
 const TMap<ECAbilityInputID, TSubclassOf<UGameplayAbility>>& UCAbilitySystemComponent::GetAbilities() const
 {
 	return Abilities;
+}
+
+bool UCAbilitySystemComponent::IsAtMaxLevel() const
+{
+	bool bFound;
+	float CurrentLevel = GetGameplayAttributeValue(UCHeroAttributeSet::GetLevelAttribute(), bFound);
+	float CurrentMaxLevel = GetGameplayAttributeValue(UCHeroAttributeSet::GetMaxLevelAttribute(), bFound);
+	
+	return CurrentLevel >= CurrentMaxLevel;
 }
 

@@ -138,6 +138,11 @@ void UGA_Combo::DoDamage(FGameplayEventData Data)
 	for (const FHitResult& HitResult : HitResults)
 	{
 		TSubclassOf<UGameplayEffect> GameplayEffect = GetDamageEffectForCurrentCombo();
+		if (!GameplayEffect)
+		{
+			UE_LOG(LogTemp, Error, TEXT("[GA_Combo::DoDamage] GameplayEffect is null!"));
+			continue;
+		}
 		ApplyGameplayEffectToHitResultActor(HitResult, GameplayEffect, GetAbilityLevel(CurrentSpecHandle, CurrentActorInfo));
 	}
 }
