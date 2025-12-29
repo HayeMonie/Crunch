@@ -114,6 +114,14 @@ void ACCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 
 }
 
+void ACCharacter::UpgradeAbilityWithInputID(ECAbilityInputID InputID)
+{
+	if (CAbilitySystemComponent)
+	{
+		CAbilitySystemComponent->Server_UpgradeAbilityWithInputID(InputID);
+	}
+}
+
 UAbilitySystemComponent* ACCharacter::GetAbilitySystemComponent() const
 {
 	return CAbilitySystemComponent;

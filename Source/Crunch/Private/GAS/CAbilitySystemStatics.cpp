@@ -87,6 +87,11 @@ bool UCAbilitySystemStatics::IsHero(const AActor* ActorToCheck)
 	return false;
 }
 
+bool UCAbilitySystemStatics::IsAbilityAtMaxLevel(const FGameplayAbilitySpec& Spec)
+{
+	return Spec.Level >= 4;        // TODO: Change Hard Code to Parameter-Based
+}
+
 float UCAbilitySystemStatics::GetStaticCooldownDurationForAbility(const UGameplayAbility* Ability)
 {
 	if (!Ability)

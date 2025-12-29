@@ -77,6 +77,42 @@ void UCAbilitySystemComponent::ServerSideInit()
 	GiveInitialAbilities();
 }
 
+void UCAbilitySystemComponent::Server_UpgradeAbilityWithInputID_Implementation(ECAbilityInputID InputID)
+{
+	bool bFound = false;
+	float UpgradePoint = GetGameplayAttributeValue(UCHeroAttributeSet::GetUpgradePointAttribute(), bFound);
+	if (!bFound || UpgradePoint <= 0)
+	{
+		return;
+	}
+
+	FGameplayAbilitySpec* AbilitySpec = FindAbilitySpecFromInputID((int32)InputID);
+	
+	if (!AbilitySpec || UCAbilitySystemStatics::IsAbilityAtMaxLevel(*AbilitySpec))
+	{
+		return;
+	}
+
+	SetNumericAttributeBase(UCHeroAttributeSet::GetUpgradePointAttribute(), UpgradePoint - 1);
+	AbilitySpec->Level += 1;
+	MarkAbilitySpecDirty(*AbilitySpec);
+}
+
+bool UCAbilitySystemComponent::Server_UpgradeAbilityWithInputID_Validate(ECAbilityInputID InputID)
+{
+	return true;
+}
+
+void UCAbilitySystemComponent::Client_AbilitySpecLevelUpdated_Implementation(FGameplayAbilitySpecHandle Handle, int NewLevel)
+{
+	FGameplayAbilitySpec* Spec = FindAbilitySpecFromHandle(Handle);
+	if (Spec)
+	{
+		Spec->Level = NewLevel;
+		AbilitySpecDirtiedCallbacks.Broadcast(*Spec);
+	}
+}
+
 void UCAbilitySystemComponent::ApplyInitialEffects()
 {
 	if (!GetOwner() || !GetOwner()->HasAuthority())
@@ -240,9 +276,9 @@ void UCAbilitySystemComponent::ExperienceUpdated(const FOnAttributeChangeData& C
 		return;
 	}
 
-	float PrevLevelExp = 0.f;
-	float NextLevelExp = 0.f;
-	float NewLevel = 1.f;
+	float PrevLevelExp = 0;
+	float NextLevelExp = 0;
+	float NewLevel = 1;
 
 	for (auto Iter = ExperienceCurve->GetKeyHandleIterator(); Iter; ++Iter)
 	{
@@ -260,13 +296,24 @@ void UCAbilitySystemComponent::ExperienceUpdated(const FOnAttributeChangeData& C
 	float CurrentLevel = GetNumericAttributeBase(UCHeroAttributeSet::GetLevelAttribute());
 	float CurrentUpgradePoint = GetNumericAttributeBase(UCHeroAttributeSet::GetUpgradePointAttribute());
 
-	float LevelUpgraded = NewLevel - CurrentLevel;
-	float NewUpgradePoint = CurrentUpgradePoint + LevelUpgraded;
+	// 只有当等级真正提升时才更新技能点
+	if (NewLevel > CurrentLevel)
+	{
+		float LevelUpgraded = NewLevel - CurrentLevel;
+		float NewUpgradePoint = CurrentUpgradePoint + LevelUpgraded;
 
-	SetNumericAttributeBase(UCHeroAttributeSet::GetLevelAttribute(), NewLevel);
-	SetNumericAttributeBase(UCHeroAttributeSet::GetPrevLevelExperienceAttribute(), PrevLevelExp);
-	SetNumericAttributeBase(UCHeroAttributeSet::GetNextLevelExperienceAttribute(), NextLevelExp);
-	SetNumericAttributeBase(UCHeroAttributeSet::GetUpgradePointAttribute(), NewUpgradePoint);
+		SetNumericAttributeBase(UCHeroAttributeSet::GetLevelAttribute(), NewLevel);
+		SetNumericAttributeBase(UCHeroAttributeSet::GetPrevLevelExperienceAttribute(), PrevLevelExp);
+		SetNumericAttributeBase(UCHeroAttributeSet::GetNextLevelExperienceAttribute(), NextLevelExp);
+		SetNumericAttributeBase(UCHeroAttributeSet::GetUpgradePointAttribute(), NewUpgradePoint);
+	}
+	else
+	{
+		// 没有升级，只更新经验值相关属性
+		SetNumericAttributeBase(UCHeroAttributeSet::GetLevelAttribute(), NewLevel);
+		SetNumericAttributeBase(UCHeroAttributeSet::GetPrevLevelExperienceAttribute(), PrevLevelExp);
+		SetNumericAttributeBase(UCHeroAttributeSet::GetNextLevelExperienceAttribute(), NextLevelExp);
+	}
 
 }
 
@@ -292,4 +339,6 @@ bool UCAbilitySystemComponent::IsAtMaxLevel() const
 	
 	return CurrentLevel >= CurrentMaxLevel;
 }
+
+
 

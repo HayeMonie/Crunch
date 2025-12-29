@@ -39,6 +39,7 @@ public:
 	
 
 	static bool IsHero(const AActor* ActorToCheck);
+	static bool IsAbilityAtMaxLevel(const FGameplayAbilitySpec& Spec);
 
 	static float GetStaticCooldownDurationForAbility(const UGameplayAbility* Ability);
 	static float GetStaticCostForAbility(const UGameplayAbility* Ability);

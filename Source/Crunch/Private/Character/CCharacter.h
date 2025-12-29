@@ -41,6 +41,9 @@ public:
 	/*****************************************************************************************/
 	/*                                 Gameplay Ability                                      */
 	/*****************************************************************************************/
+protected:
+	void UpgradeAbilityWithInputID(ECAbilityInputID InputID);
+	
 public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
