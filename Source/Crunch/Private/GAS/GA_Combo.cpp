@@ -131,18 +131,13 @@ void UGA_Combo::ComboChangedEventReceived(FGameplayEventData Data)
 
 void UGA_Combo::DoDamage(FGameplayEventData Data)
 {
-	// Draw Debug Sphere
-	TArray<FHitResult> HitResults = GetHitResultFromSweepLocationTargetData(Data.TargetData, TargetSweepSphereRadius);
-
+	int HitResultCount = UAbilitySystemBlueprintLibrary::GetDataCountFromTargetData(Data.TargetData);
 	
-	for (const FHitResult& HitResult : HitResults)
+	for (int i = 0; i < HitResultCount; i++)
 	{
+		FHitResult HitResult = UAbilitySystemBlueprintLibrary::GetHitResultFromTargetData(Data.TargetData, i);
 		TSubclassOf<UGameplayEffect> GameplayEffect = GetDamageEffectForCurrentCombo();
-		if (!GameplayEffect)
-		{
-			UE_LOG(LogTemp, Error, TEXT("[GA_Combo::DoDamage] GameplayEffect is null!"));
-			continue;
-		}
+		
 		ApplyGameplayEffectToHitResultActor(HitResult, GameplayEffect, GetAbilityLevel(CurrentSpecHandle, CurrentActorInfo));
 	}
 }

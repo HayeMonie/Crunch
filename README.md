@@ -38,3 +38,7 @@
 - ### 10 - The Ground Blast Ability : *2025.12.23*
 
 - ### 11 - Character Level, Stats and Stats Driven Attributes : *2025.12.29*
+
+- ### 12 - Ability Upgrading : *2026.1.3*
+
+- ### 13 - GAS Optimization : *2026.1.4*
