@@ -32,7 +32,7 @@ const TArray<const UPDA_ShopItem*>& FItemCollection::GetItems() const
 
 FPrimaryAssetId UPDA_ShopItem::GetPrimaryAssetId() const
 {
-	return FPrimaryAssetId(GetShopItemAssetType(), FName());
+	return FPrimaryAssetId(GetShopItemAssetType(), GetFName());
 }
 
 FPrimaryAssetType UPDA_ShopItem::GetShopItemAssetType()

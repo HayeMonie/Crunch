@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "Inventory/InventoryComponent.h"
 #include "ShopWidget.generated.h"
 
 class UPDA_ShopItem;
@@ -29,5 +30,8 @@ private:
 
 	UPROPERTY()
 	TMap<const UPDA_ShopItem*, const UShopItemWidget*> ItemsMap;
+
+	UPROPERTY()
+	UInventoryComponent* OwnerInventoryComponent;
 	
 };

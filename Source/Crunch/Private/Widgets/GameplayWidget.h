@@ -19,6 +19,8 @@ class UGameplayWidget : public UUserWidget
 public:
 	virtual void NativeConstruct() override;
 	void ConfigureAbilities(const TMap<ECAbilityInputID, TSubclassOf<UGameplayAbility>>& Abilities);
+	void ToggleShop();
+	
 	
 private:
 	UPROPERTY(meta = (BindWidget))
@@ -45,8 +47,20 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UStatsGauge* StrengthGauge;
 	
+	UPROPERTY(meta = (BindWidget))
+	class UShopWidget* ShopWidget;
+
+	UPROPERTY(Transient, meta = (BindWidgetAnim))
+	class UWidgetAnimation* ShopPopUpAnimation;
+
+	void PlayShopPopUpAnimation(bool bPlayForward);
+	void SetOwningPawnInputEnabled(bool bPawnInputEnabled);
+	void SetShowMouseCursor(bool bShowMouseCursor);
+	void SetFocusToGameAndUI();
+	void SetFocusToGameOnly();
 	
 	UPROPERTY()
 	class UAbilitySystemComponent* OwnerAbilitySystemComponent;
 	
 };
+

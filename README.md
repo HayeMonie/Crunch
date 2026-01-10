@@ -42,3 +42,5 @@
 - ### 12 - Ability Upgrading : *2026.1.3*
 
 - ### 13 - GAS Optimization : *2026.1.4*
+
+- ### 14 - The Shop System : *2026.1.10*
