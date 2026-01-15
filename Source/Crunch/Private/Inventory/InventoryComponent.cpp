@@ -46,6 +46,25 @@ float UInventoryComponent::GetGold() const
 	return 0.f;
 }
 
+void UInventoryComponent::ItemSlotChanged(const FInventoryItemHandle& Handle, int NewSlotNumber)
+{
+	if (UInventoryItem* FoundItem = GetInventoryItemByHandle(Handle))
+	{
+		FoundItem->SetSlot(NewSlotNumber);
+	}
+}
+
+UInventoryItem* UInventoryComponent::GetInventoryItemByHandle(const FInventoryItemHandle& Handle) const
+{
+	UInventoryItem* const* FoundItem = InventoryMap.Find(Handle);
+	if (FoundItem)
+	{
+		return *FoundItem;
+	}
+
+	return nullptr;
+}
+
 
 // Called when the game starts
 void UInventoryComponent::BeginPlay()
@@ -76,6 +95,12 @@ void UInventoryComponent::GrantItem(const UPDA_ShopItem* NewItem)
 void UInventoryComponent::Client_ItemAdded_Implementation(FInventoryItemHandle AssignedHandle,
 	const UPDA_ShopItem* Item)
 {
+	// 检查是否已经存在该物品，避免重复添加
+	if (InventoryMap.Contains(AssignedHandle))
+	{
+		return;
+	}
+	
 	UInventoryItem* InventoryItem = NewObject<UInventoryItem>(this);
 	InventoryItem->InitItem(AssignedHandle, Item);
 	InventoryMap.Add(AssignedHandle, InventoryItem);
@@ -96,6 +121,11 @@ void UInventoryComponent::Server_Purchase_Implementation(const UPDA_ShopItem* It
 		return;
 	}
 
+	if (GetCapacity() <= InventoryMap.Num())
+	{
+		return;
+	}
+	
 	OwnerAbilitySystemComponent->ApplyModToAttribute(UCHeroAttributeSet::GetGoldAttribute(), EGameplayModOp::Additive, -ItemToPurchase->GetPrice());
 	GrantItem(ItemToPurchase);
 }

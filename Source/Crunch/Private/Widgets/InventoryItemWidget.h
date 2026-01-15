@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Inventory/InventoryItem.h"
 #include "Widgets/ItemWidget.h"
 #include "InventoryItemWidget.generated.h"
 
@@ -19,6 +20,7 @@ public:
 	virtual void NativeConstruct() override;
 	bool IsEmpty() const;
 	void UpdateInventoryItem(const UInventoryItem* Item);
+	void SetSlotNumber(int NewSlotNumber);
 	FORCEINLINE int GetSlotNumber() const { return SlotNumber; };
 	void EmptySlot();
 

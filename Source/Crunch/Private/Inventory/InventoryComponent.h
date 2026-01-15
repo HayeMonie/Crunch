@@ -10,7 +10,7 @@
 class UAbilitySystemComponent;
 class UPDA_ShopItem;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnItemAddedDelegate, UInventoryItem* /*NewItem*/)
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnItemAddedDelegate, const UInventoryItem* /*NewItem*/)
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UInventoryComponent : public UActorComponent
@@ -24,11 +24,19 @@ public:
 
 	void TryPurchase(const UPDA_ShopItem* ItemToPurchase);
 	float GetGold() const;
+	FORCEINLINE int GetCapacity() const { return Capacity; }
+
+	void ItemSlotChanged(const FInventoryItemHandle& Handle, int NewSlotNumber);
+	UInventoryItem* GetInventoryItemByHandle(const FInventoryItemHandle& Handle) const;
+	
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
 private:
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
+	int Capacity { 6 };
+	
 	UPROPERTY()
 	UAbilitySystemComponent* OwnerAbilitySystemComponent;
 

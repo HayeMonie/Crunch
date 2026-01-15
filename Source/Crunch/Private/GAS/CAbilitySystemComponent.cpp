@@ -63,7 +63,7 @@ void UCAbilitySystemComponent::InitializeBaseAttributes()
 		float MaxExp = ExperienceCurve->GetKeyValue(ExperienceCurve->GetLastKeyHandle());
 		SetNumericAttributeBase(UCHeroAttributeSet::GetMaxLevelExperienceAttribute(), MaxExp);
 
-		UE_LOG(LogTemp, Warning, TEXT("Max Level is: %d, Max Experience is: %f"), MaxLevel, MaxExp);
+
 	}
 
 	ExperienceUpdated(FOnAttributeChangeData());
@@ -83,6 +83,7 @@ void UCAbilitySystemComponent::Server_UpgradeAbilityWithInputID_Implementation(E
 	float UpgradePoint = GetGameplayAttributeValue(UCHeroAttributeSet::GetUpgradePointAttribute(), bFound);
 	if (!bFound || UpgradePoint <= 0)
 	{
+
 		return;
 	}
 
@@ -90,9 +91,12 @@ void UCAbilitySystemComponent::Server_UpgradeAbilityWithInputID_Implementation(E
 	
 	if (!AbilitySpec || UCAbilitySystemStatics::IsAbilityAtMaxLevel(*AbilitySpec))
 	{
+
 		return;
 	}
 
+
+	
 	SetNumericAttributeBase(UCHeroAttributeSet::GetUpgradePointAttribute(), UpgradePoint - 1);
 	AbilitySpec->Level += 1;
 	MarkAbilitySpecDirty(*AbilitySpec);

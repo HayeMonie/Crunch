@@ -45,6 +45,11 @@ void UInventoryItemWidget::UpdateInventoryItem(const UInventoryItem* Item)
 	}
 }
 
+void UInventoryItemWidget::SetSlotNumber(int NewSlotNumber)
+{
+	SlotNumber = NewSlotNumber;
+}
+
 void UInventoryItemWidget::EmptySlot()
 {
 	InventoryItem = nullptr;
