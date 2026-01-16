@@ -7,7 +7,12 @@
 #include "Widgets/ItemWidget.h"
 #include "InventoryItemWidget.generated.h"
 
+class UInventoryItemDragDropOp;
 class UInventoryItem;
+class UInventoryItemWidget;
+
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInventoryItemDropped, UInventoryItemWidget* /*DestinationWidget*/, UInventoryItemWidget* /*SourceWidget*/);
+
 /**
  * 
  */
@@ -17,16 +22,21 @@ class UInventoryItemWidget : public UItemWidget
 	GENERATED_BODY()
 
 public:
+	FOnInventoryItemDropped OnInventoryItemDropped;
 	virtual void NativeConstruct() override;
 	bool IsEmpty() const;
 	void UpdateInventoryItem(const UInventoryItem* Item);
 	void SetSlotNumber(int NewSlotNumber);
 	FORCEINLINE int GetSlotNumber() const { return SlotNumber; };
 	void EmptySlot();
+	void UpdateStackCount();
+	UTexture2D* GetIconTexture() const;
 
+	FORCEINLINE const UInventoryItem* GetInventoryItem() const { return InventoryItem; }
+	FInventoryItemHandle GetItemHandle() const;
 	
 private:
-	void UpdateStackCount();
+
 	UPROPERTY(EditDefaultsOnly, Category = "Visual")
 	UTexture2D* EmptyTexture;
 	
@@ -46,5 +56,16 @@ private:
 	const UInventoryItem* InventoryItem;
 
 	int SlotNumber;
+
+	/*****************************************************************************/
+	/*                             Drag Drop                                     */
+	/*****************************************************************************/
+private:
+	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation) override;
+	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation) override;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Drag Drop")
+	TSubclassOf<class UInventoryItemDragDropOp> DragDropOpClass;
+	
 };
 

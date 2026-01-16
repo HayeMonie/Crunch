@@ -65,6 +65,44 @@ UInventoryItem* UInventoryComponent::GetInventoryItemByHandle(const FInventoryIt
 	return nullptr;
 }
 
+bool UInventoryComponent::IsFullFor(const UPDA_ShopItem* Item) const
+{
+	if (!Item)
+	{
+		return false;
+	}
+
+	if (IsAllSlotOccupied())
+	{
+		return GetAvailableStackForItem(Item) == nullptr;
+	}
+
+	return false;
+}
+
+bool UInventoryComponent::IsAllSlotOccupied() const
+{
+	return InventoryMap.Num() >= GetCapacity();
+}
+
+UInventoryItem* UInventoryComponent::GetAvailableStackForItem(const UPDA_ShopItem* Item) const
+{
+	if (!Item->GetIsStackable())
+	{
+		return nullptr;
+	}
+
+	for (const TPair<FInventoryItemHandle, UInventoryItem*>& ItemPair : InventoryMap)
+	{
+		if (ItemPair.Value && ItemPair.Value->GetShopItem() == Item && !ItemPair.Value->IsStackFull())
+		{
+			return ItemPair.Value;
+		}
+	}
+
+	return nullptr;
+}
+
 
 // Called when the game starts
 void UInventoryComponent::BeginPlay()
@@ -82,21 +120,53 @@ void UInventoryComponent::GrantItem(const UPDA_ShopItem* NewItem)
 		return;
 	}
 
-	UInventoryItem* InventoryItem = NewObject<UInventoryItem>(this);
-	FInventoryItemHandle NewHandle = FInventoryItemHandle::CreateHandle();
-	InventoryItem->InitItem(NewHandle, NewItem);
-	InventoryMap.Add(NewHandle, InventoryItem);
-	OnItemAdded.Broadcast(InventoryItem);
-	UE_LOG(LogTemp, Warning, TEXT("Server Adding Item Name : %s; with ID: %d"), *InventoryItem->GetShopItem()->GetItemName().ToString(), NewHandle.GetHandleId());
-	Client_ItemAdded(NewHandle, NewItem);
-	InventoryItem->ApplyGasModifications(OwnerAbilitySystemComponent);
+	if (UInventoryItem* StackItem = GetAvailableStackForItem(NewItem))
+	{
+		StackItem->AddStackCount();
+		OnItemStackCountChange.Broadcast(StackItem->GetHandle(), StackItem->GetStackCount());
+		Client_ItemStackCountChanged(StackItem->GetHandle(), StackItem->GetStackCount());
+	}
+	else
+	{
+		UInventoryItem* InventoryItem = NewObject<UInventoryItem>(this);
+		FInventoryItemHandle NewHandle = FInventoryItemHandle::CreateHandle();
+		InventoryItem->InitItem(NewHandle, NewItem);
+		InventoryMap.Add(NewHandle, InventoryItem);
+		OnItemAdded.Broadcast(InventoryItem);
+		UE_LOG(LogTemp, Warning, TEXT("Server Adding Item Name : %s; with ID: %d"), *InventoryItem->GetShopItem()->GetItemName().ToString(), NewHandle.GetHandleId());
+		Client_ItemAdded(NewHandle, NewItem);
+		InventoryItem->ApplyGasModifications(OwnerAbilitySystemComponent);	
+	}
+
+	
+}
+
+void UInventoryComponent::Client_ItemStackCountChanged_Implementation(FInventoryItemHandle Handle, int NewCount)
+{
+	if (GetOwner()->HasAuthority())
+	{
+		return;
+	}
+
+	UInventoryItem* FoundItem = GetInventoryItemByHandle(Handle);
+
+	if (FoundItem)
+	{
+		(FoundItem)->SetStackCount(NewCount);
+		OnItemStackCountChange.Broadcast(Handle, NewCount);
+	}
 }
 
 void UInventoryComponent::Client_ItemAdded_Implementation(FInventoryItemHandle AssignedHandle,
-	const UPDA_ShopItem* Item)
+                                                          const UPDA_ShopItem* Item)
 {
 	// 检查是否已经存在该物品，避免重复添加
 	if (InventoryMap.Contains(AssignedHandle))
+	{
+		return;
+	}
+
+	if (GetOwner()->HasAuthority())
 	{
 		return;
 	}
@@ -122,6 +192,11 @@ void UInventoryComponent::Server_Purchase_Implementation(const UPDA_ShopItem* It
 	}
 
 	if (GetCapacity() <= InventoryMap.Num())
+	{
+		return;
+	}
+
+	if (IsFullFor(ItemToPurchase))
 	{
 		return;
 	}

@@ -10,7 +10,8 @@
 class UAbilitySystemComponent;
 class UPDA_ShopItem;
 
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnItemAddedDelegate, const UInventoryItem* /*NewItem*/)
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnItemAddedDelegate, const UInventoryItem* /*NewItem*/);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnItemStackCountChangeDelegate, const FInventoryItemHandle&, int  /*NewItem*/);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UInventoryComponent : public UActorComponent
@@ -21,6 +22,7 @@ public:
 	// Sets default values for this component's properties
 	UInventoryComponent();
 	FOnItemAddedDelegate OnItemAdded;
+	FOnItemStackCountChangeDelegate OnItemStackCountChange;
 
 	void TryPurchase(const UPDA_ShopItem* ItemToPurchase);
 	float GetGold() const;
@@ -28,6 +30,11 @@ public:
 
 	void ItemSlotChanged(const FInventoryItemHandle& Handle, int NewSlotNumber);
 	UInventoryItem* GetInventoryItemByHandle(const FInventoryItemHandle& Handle) const;
+
+	bool IsFullFor(const UPDA_ShopItem* Item) const;
+	
+	bool IsAllSlotOccupied() const;
+	UInventoryItem* GetAvailableStackForItem(const UPDA_ShopItem* Item) const;
 	
 protected:
 	// Called when the game starts
@@ -56,5 +63,8 @@ private:
 private:
 	UFUNCTION(Client, Reliable)
 	void Client_ItemAdded(FInventoryItemHandle AssignedHandle, const UPDA_ShopItem* Item);
+
+	UFUNCTION(Client, Reliable)
+	void Client_ItemStackCountChanged(FInventoryItemHandle Handle, int NewCount);
 	
 };

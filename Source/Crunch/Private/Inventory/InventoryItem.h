@@ -47,6 +47,19 @@ class UInventoryItem : public UObject
 	GENERATED_BODY()
 
 public:
+	// Returns true if stack count was increased
+	bool AddStackCount();
+
+	// Returns true if stack count was reduced
+	bool ReduceStackCount();
+
+	// Returns true if stack count was able to set
+	bool SetStackCount(int32 NewStackCount);
+	
+	bool IsStackFull() const;
+	bool IsForItem(const UPDA_ShopItem* Item) const;
+
+	
 	UInventoryItem();
 	bool IsValid() const;
 	void InitItem(const FInventoryItemHandle& NewHandle, const UPDA_ShopItem* NewShopItem);

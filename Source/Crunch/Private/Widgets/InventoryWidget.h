@@ -33,6 +33,7 @@ private:
 	TMap<FInventoryItemHandle, UInventoryItemWidget*> PopulatedItemEntryWidgets;
 
 	void ItemAdded(const UInventoryItem* InventoryItem);
+	void ItemStackCountChanged(const FInventoryItemHandle& Handle, int32 NewCount);
 
 	UInventoryItemWidget* GetNextAvailableSlot() const;
 	
