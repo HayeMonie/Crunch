@@ -19,6 +19,7 @@ void UInventoryWidget::NativeConstruct()
 		if (InventoryComponent)
 		{
 			InventoryComponent->OnItemAdded.AddUObject(this, &UInventoryWidget::ItemAdded);
+			InventoryComponent->OnItemRemoved.AddUObject(this, &UInventoryWidget::ItemRemoved);
 			InventoryComponent->OnItemStackCountChange.AddUObject(this, &UInventoryWidget::ItemStackCountChanged);
 			int Capacity = InventoryComponent->GetCapacity();
 
@@ -32,6 +33,9 @@ void UInventoryWidget::NativeConstruct()
 					UWrapBoxSlot* NewSlot = ItemList->AddChildToWrapBox(NewEmptyWidget);
 					NewSlot->SetPadding(FMargin(2.f));
 					ItemWidgets.Add(NewEmptyWidget);
+
+					NewEmptyWidget->OnInventoryItemDropped.AddUObject(this, &UInventoryWidget::HandleItemDragDrop);
+					NewEmptyWidget->OnLeftButtonClick.AddUObject(InventoryComponent, &UInventoryComponent::TryActivateItem);
 				}
 			}
 		}
@@ -76,4 +80,39 @@ UInventoryItemWidget* UInventoryWidget::GetNextAvailableSlot() const
 	}
 
 	return nullptr;
+}
+
+void UInventoryWidget::HandleItemDragDrop(UInventoryItemWidget* DestinationWidget, UInventoryItemWidget* SourceWidget)
+{
+	const UInventoryItem* SourceItem = SourceWidget->GetInventoryItem();
+	const UInventoryItem* DestinationItem = DestinationWidget->GetInventoryItem();
+
+	DestinationWidget->UpdateInventoryItem(SourceItem);
+	SourceWidget->UpdateInventoryItem(DestinationItem);
+
+	PopulatedItemEntryWidgets[DestinationWidget->GetItemHandle()] = DestinationWidget;
+
+	if (InventoryComponent)
+	{
+		InventoryComponent->ItemSlotChanged(DestinationWidget->GetItemHandle(), DestinationWidget->GetSlotNumber());
+	}
+
+	if (!SourceWidget->IsEmpty())
+	{
+		PopulatedItemEntryWidgets[SourceWidget->GetItemHandle()] = SourceWidget;
+		if (InventoryComponent)
+		{
+			InventoryComponent->ItemSlotChanged(SourceWidget->GetItemHandle(), SourceWidget->GetSlotNumber());
+		}
+	}
+}
+
+void UInventoryWidget::ItemRemoved(const FInventoryItemHandle& ItemHandle)
+{
+	UInventoryItemWidget** FoundWidget = PopulatedItemEntryWidgets.Find(ItemHandle);
+	if (FoundWidget && *FoundWidget)
+	{
+		(*FoundWidget)->EmptySlot();
+		PopulatedItemEntryWidgets.Remove(ItemHandle);
+	}
 }

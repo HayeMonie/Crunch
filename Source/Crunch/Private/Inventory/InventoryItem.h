@@ -65,6 +65,10 @@ public:
 	void InitItem(const FInventoryItemHandle& NewHandle, const UPDA_ShopItem* NewShopItem);
 	const UPDA_ShopItem* GetShopItem() const { return ShopItem; }
 	FInventoryItemHandle GetHandle() const { return Handle; }
+	
+	bool TryActivateGrantedAbility(UAbilitySystemComponent* AbilitySystemComponent);
+	void ApplyConsumeEffect(UAbilitySystemComponent* AbilitySystemComponent);
+	void RemoveGasModifications(UAbilitySystemComponent* AbilitySystemComponent);
 	void ApplyGasModifications(UAbilitySystemComponent* AbilitySystemComponent);
 	FORCEINLINE int32 GetStackCount() const { return StackCount; }
 	void SetSlot(int32 NewSlot);

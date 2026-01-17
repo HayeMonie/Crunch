@@ -16,6 +16,92 @@ UInventoryComponent::UInventoryComponent()
 	// ...
 }
 
+void UInventoryComponent::TryActivateItem(const FInventoryItemHandle& ItemHandle)
+{
+	UInventoryItem* InventoryItem = GetInventoryItemByHandle(ItemHandle);
+	if (!InventoryItem)
+	{
+		return;
+	}
+
+	Server_ActivateItem(ItemHandle);
+}
+
+void UInventoryComponent::Server_ActivateItem_Implementation(const FInventoryItemHandle ItemHandle)
+{
+	UInventoryItem* InventoryItem = GetInventoryItemByHandle(ItemHandle);
+	if (!InventoryItem)
+	{
+		return;
+	}
+
+	InventoryItem->TryActivateGrantedAbility(OwnerAbilitySystemComponent);
+	const UPDA_ShopItem* Item = InventoryItem->GetShopItem();
+	if (Item->GetIsConsumable())
+	{
+		ConsumeItem(InventoryItem);
+	}
+}
+
+bool UInventoryComponent::Server_ActivateItem_Validate(const FInventoryItemHandle ItemHandle)
+{
+	return true;
+}
+
+void UInventoryComponent::ConsumeItem(UInventoryItem* Item)
+{
+	if (!GetOwner()->HasAuthority())
+	{
+		return;
+	}
+
+	if (!Item)
+	{
+		return;
+	}
+
+	Item->ApplyConsumeEffect(OwnerAbilitySystemComponent);
+	if (!Item->ReduceStackCount())
+	{
+		RemoveItem(Item);
+	}
+	else
+	{
+		OnItemStackCountChange.Broadcast(Item->GetHandle(), Item->GetStackCount());
+		Client_ItemStackCountChanged(Item->GetHandle(), Item->GetStackCount());
+	}
+}
+
+void UInventoryComponent::RemoveItem(UInventoryItem* Item)
+{
+	if (!GetOwner()->HasAuthority())
+	{
+		return;
+	}
+
+	Item->RemoveGasModifications(OwnerAbilitySystemComponent);
+	OnItemRemoved.Broadcast(Item->GetHandle());
+	InventoryMap.Remove(Item->GetHandle());
+	Client_ItemRemoved(Item->GetHandle());
+}
+
+void UInventoryComponent::Client_ItemRemoved_Implementation(FInventoryItemHandle ItemHandle)
+{
+	if (GetOwner()->HasAuthority())
+	{
+		return;
+	}
+
+	UInventoryItem* InventoryItem = GetInventoryItemByHandle(ItemHandle);
+	if (!InventoryItem)
+	{
+		return;
+	}
+
+	OnItemRemoved.Broadcast(ItemHandle);
+	InventoryMap.Remove(ItemHandle);
+}
+
 void UInventoryComponent::TryPurchase(const UPDA_ShopItem* ItemToPurchase)
 {
 	if (!OwnerAbilitySystemComponent)

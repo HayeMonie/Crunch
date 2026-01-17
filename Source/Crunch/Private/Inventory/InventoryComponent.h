@@ -11,6 +11,7 @@ class UAbilitySystemComponent;
 class UPDA_ShopItem;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnItemAddedDelegate, const UInventoryItem* /*NewItem*/);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnItemRemovedDelegate, const FInventoryItemHandle& /*ItemHandle*/);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnItemStackCountChangeDelegate, const FInventoryItemHandle&, int  /*NewItem*/);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -23,7 +24,9 @@ public:
 	UInventoryComponent();
 	FOnItemAddedDelegate OnItemAdded;
 	FOnItemStackCountChangeDelegate OnItemStackCountChange;
+	FOnItemRemovedDelegate OnItemRemoved;
 
+	void TryActivateItem(const FInventoryItemHandle& ItemHandle);
 	void TryPurchase(const UPDA_ShopItem* ItemToPurchase);
 	float GetGold() const;
 	FORCEINLINE int GetCapacity() const { return Capacity; }
@@ -55,7 +58,13 @@ private:
 	/********************************************************************************/
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_Purchase(const UPDA_ShopItem* ItemToPurchase);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_ActivateItem(const FInventoryItemHandle ItemHandle);
+	
 	void GrantItem(const UPDA_ShopItem* NewItem);
+	void ConsumeItem(UInventoryItem* Item);
+	void RemoveItem(UInventoryItem* Item);
 
 	/********************************************************************************/
 	/*                                  Client                                      */
@@ -63,6 +72,9 @@ private:
 private:
 	UFUNCTION(Client, Reliable)
 	void Client_ItemAdded(FInventoryItemHandle AssignedHandle, const UPDA_ShopItem* Item);
+
+	UFUNCTION(Client, Reliable)
+	void Client_ItemRemoved(FInventoryItemHandle ItemHandle);
 
 	UFUNCTION(Client, Reliable)
 	void Client_ItemStackCountChanged(FInventoryItemHandle Handle, int NewCount);

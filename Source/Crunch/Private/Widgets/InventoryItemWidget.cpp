@@ -25,6 +25,7 @@ void UInventoryItemWidget::UpdateInventoryItem(const UInventoryItem* Item)
 	if (!InventoryItem || !InventoryItem->IsValid() || InventoryItem->GetStackCount() <= 0 )
 	{
 		EmptySlot();
+		return;
 	}
 
 	SetIcon(Item->GetShopItem()->GetIcon());
@@ -88,6 +89,22 @@ FInventoryItemHandle UInventoryItemWidget::GetItemHandle() const
 	}
 
 	return FInventoryItemHandle::GetInvalidHandle();
+}
+
+void UInventoryItemWidget::RightButtonClicked()
+{
+	if (!IsEmpty())
+	{
+		OnRightButtonClick.Broadcast(GetItemHandle());
+	}
+}
+
+void UInventoryItemWidget::LeftButtonClicked()
+{
+	if (!IsEmpty())
+	{
+		OnLeftButtonClick.Broadcast(GetItemHandle());
+	}
 }
 
 void UInventoryItemWidget::NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent,
