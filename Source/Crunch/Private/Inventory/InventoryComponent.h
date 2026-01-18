@@ -28,6 +28,7 @@ public:
 
 	void TryActivateItem(const FInventoryItemHandle& ItemHandle);
 	void TryPurchase(const UPDA_ShopItem* ItemToPurchase);
+	void SellItem(const FInventoryItemHandle& ItemHandle);
 	float GetGold() const;
 	FORCEINLINE int GetCapacity() const { return Capacity; }
 
@@ -38,6 +39,8 @@ public:
 	
 	bool IsAllSlotOccupied() const;
 	UInventoryItem* GetAvailableStackForItem(const UPDA_ShopItem* Item) const;
+	bool FoundIngredientForItem(const UPDA_ShopItem* Item, TArray<UInventoryItem*>& OutIngredients) const;
+	UInventoryItem* TryGetItemForShopItem(const UPDA_ShopItem* Item) const;
 	
 protected:
 	// Called when the game starts
@@ -61,10 +64,14 @@ private:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_ActivateItem(const FInventoryItemHandle ItemHandle);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_SellItem(const FInventoryItemHandle ItemHandle);
 	
 	void GrantItem(const UPDA_ShopItem* NewItem);
 	void ConsumeItem(UInventoryItem* Item);
 	void RemoveItem(UInventoryItem* Item);
+	void CheckItemCombination(const UInventoryItem* NewItem);
 
 	/********************************************************************************/
 	/*                                  Client                                      */
@@ -80,3 +87,5 @@ private:
 	void Client_ItemStackCountChanged(FInventoryItemHandle Handle, int NewCount);
 	
 };
+
+

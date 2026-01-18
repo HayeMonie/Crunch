@@ -3,6 +3,9 @@
 
 #include "Widgets/InventoryWidget.h"
 
+#include "Blueprint/SlateBlueprintLibrary.h"
+#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Widgets/InventoryContextMenuWidget.h"
 #include "Inventory/InventoryComponent.h"
 #include "Widgets/InventoryItemWidget.h"
 #include "Components/WrapBox.h"
@@ -36,10 +39,113 @@ void UInventoryWidget::NativeConstruct()
 
 					NewEmptyWidget->OnInventoryItemDropped.AddUObject(this, &UInventoryWidget::HandleItemDragDrop);
 					NewEmptyWidget->OnLeftButtonClick.AddUObject(InventoryComponent, &UInventoryComponent::TryActivateItem);
+					NewEmptyWidget->OnRightButtonClick.AddUObject(this, &UInventoryWidget::ToggleContextMenu);
 				}
 			}
+
+			SpawnContextMenu();
 		}
 	}
+}
+
+void UInventoryWidget::NativeOnFocusChanging(const FWeakWidgetPath& PreviousFocusPath, const FWidgetPath& NewWidgetPath,
+	const FFocusEvent& InFocusEvent)
+{
+	Super::NativeOnFocusChanging(PreviousFocusPath, NewWidgetPath, InFocusEvent);
+	if (!NewWidgetPath.ContainsWidget(ContextMenuWidget->GetCachedWidget().Get()))
+	{
+		ClearContextMenu();
+	}
+}
+
+void UInventoryWidget::SpawnContextMenu()
+{
+	if (!ContextMenuWidgetClass)
+	{
+		return;
+	}
+
+	ContextMenuWidget = CreateWidget<UInventoryContextMenuWidget>(this, ContextMenuWidgetClass);
+	if (ContextMenuWidget)
+	{
+		ContextMenuWidget->GetSellButtonClickedEvent().AddDynamic(this, &UInventoryWidget::SellFocusedItem);
+		ContextMenuWidget->GetUseButtonClickedEvent().AddDynamic(this, &UInventoryWidget::UseFocusedItem);
+		ContextMenuWidget->AddToViewport(1);
+		SetContextMenuVisible(false);
+	}
+}
+
+void UInventoryWidget::SellFocusedItem()
+{
+	InventoryComponent->SellItem(CurrentFocusedItemHandle);
+	// UE_LOG(LogTemp, Warning, TEXT("Selling Item"));
+	SetContextMenuVisible(false);
+}
+
+void UInventoryWidget::UseFocusedItem()
+{
+	InventoryComponent->TryActivateItem(CurrentFocusedItemHandle);
+	SetContextMenuVisible(false);
+}
+
+void UInventoryWidget::SetContextMenuVisible(bool bContextMenuVisible)
+{
+	if (ContextMenuWidget)
+	{
+		ContextMenuWidget->SetVisibility(bContextMenuVisible ? ESlateVisibility::Visible : ESlateVisibility::Hidden);
+	}
+}
+
+void UInventoryWidget::ToggleContextMenu(const FInventoryItemHandle& ItemHandle)
+{
+	if (CurrentFocusedItemHandle == ItemHandle)
+	{
+		ClearContextMenu();
+		return;
+	}
+
+	CurrentFocusedItemHandle = ItemHandle;
+	UInventoryItemWidget** ItemWidgetPtrPtr = PopulatedItemEntryWidgets.Find(ItemHandle);
+
+	if (!ItemWidgetPtrPtr)
+	{
+		return;
+	}
+
+	UInventoryItemWidget* ItemWidget = *ItemWidgetPtrPtr;
+	if (!ItemWidget)
+	{
+		return;
+	}
+
+	SetContextMenuVisible(true);
+	FVector2D ItemAbsolutePosition = ItemWidget->GetCachedGeometry().GetAbsolutePositionAtCoordinates(FVector2D{1.f, 0.5f});
+
+	FVector2D ItemWidgetPixelPos, ItemWidgetViewportPos;
+	USlateBlueprintLibrary::AbsoluteToViewport(this, ItemAbsolutePosition, ItemWidgetPixelPos, ItemWidgetViewportPos);\
+
+	APlayerController* OwningPlayerController = GetOwningPlayer();
+	if (OwningPlayerController)
+	{
+		int ViewportSizeX, ViewportSizeY;
+		OwningPlayerController->GetViewportSize(ViewportSizeX, ViewportSizeY);
+		float Scale = UWidgetLayoutLibrary::GetViewportScale(this);
+
+		int Overshoot = ItemWidgetPixelPos.Y + ContextMenuWidget->GetDesiredSize().Y * Scale - ViewportSizeY;
+		
+		if (Overshoot > 0)
+		{
+			ItemWidgetPixelPos.Y -= Overshoot;
+		}
+	}
+	
+	ContextMenuWidget->SetPositionInViewport(ItemWidgetPixelPos);
+}
+
+void UInventoryWidget::ClearContextMenu()
+{
+	ContextMenuWidget->SetVisibility(ESlateVisibility::Hidden);
+	CurrentFocusedItemHandle = FInventoryItemHandle::GetInvalidHandle();
 }
 
 void UInventoryWidget::ItemAdded(const UInventoryItem* InventoryItem)
