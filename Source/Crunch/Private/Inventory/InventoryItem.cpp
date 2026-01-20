@@ -95,6 +95,27 @@ bool UInventoryItem::IsForItem(const UPDA_ShopItem* Item) const
 	return GetShopItem() == Item;
 }
 
+bool UInventoryItem::IsGrantingAbility(TSubclassOf<UGameplayAbility> AbilityClass) const
+{
+	if (!ShopItem)
+	{
+		return false;
+	}
+
+	TSubclassOf<UGameplayAbility> GrantedAbility = ShopItem->GetGrantedAbility();
+	return GrantedAbility == AbilityClass;
+}
+
+bool UInventoryItem::IsGrantingAnyAbility() const
+{
+	if (!ShopItem)
+	{
+		return false;
+	}
+
+	return ShopItem->GetGrantedAbility() != nullptr;
+}
+
 UInventoryItem::UInventoryItem() : StackCount{ 1 }
 {
 	

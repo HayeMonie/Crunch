@@ -13,6 +13,7 @@ class UPDA_ShopItem;
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnItemAddedDelegate, const UInventoryItem* /*NewItem*/);
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnItemRemovedDelegate, const FInventoryItemHandle& /*ItemHandle*/);
 DECLARE_MULTICAST_DELEGATE_TwoParams(FOnItemStackCountChangeDelegate, const FInventoryItemHandle&, int  /*NewItem*/);
+DECLARE_MULTICAST_DELEGATE_ThreeParams(FOnItemAbilityCommittedDelegate, const FInventoryItemHandle&, float /*CooldownDuration*/, float /*CooldownTimeRemaining*/)
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UInventoryComponent : public UActorComponent
@@ -25,6 +26,7 @@ public:
 	FOnItemAddedDelegate OnItemAdded;
 	FOnItemStackCountChangeDelegate OnItemStackCountChange;
 	FOnItemRemovedDelegate OnItemRemoved;
+	FOnItemAbilityCommittedDelegate OnItemAbilityCommitted;
 
 	void TryActivateItem(const FInventoryItemHandle& ItemHandle);
 	void TryPurchase(const UPDA_ShopItem* ItemToPurchase);
@@ -39,7 +41,7 @@ public:
 	
 	bool IsAllSlotOccupied() const;
 	UInventoryItem* GetAvailableStackForItem(const UPDA_ShopItem* Item) const;
-	bool FoundIngredientForItem(const UPDA_ShopItem* Item, TArray<UInventoryItem*>& OutIngredients) const;
+	bool FindIngredientForItem(const UPDA_ShopItem* Item, TArray<UInventoryItem*>& OutIngredients, const TArray<const UPDA_ShopItem*>& IngredientToIgnore = TArray<const UPDA_ShopItem*>{}) const;
 	UInventoryItem* TryGetItemForShopItem(const UPDA_ShopItem* Item) const;
 	
 protected:
@@ -56,6 +58,8 @@ private:
 	UPROPERTY()
 	TMap<FInventoryItemHandle, UInventoryItem*> InventoryMap;
 
+	void AbilityCommitted(class UGameplayAbility* CommittedAbility);
+
 	/********************************************************************************/
 	/*                                  Server                                      */
 	/********************************************************************************/
@@ -71,7 +75,7 @@ private:
 	void GrantItem(const UPDA_ShopItem* NewItem);
 	void ConsumeItem(UInventoryItem* Item);
 	void RemoveItem(UInventoryItem* Item);
-	void CheckItemCombination(const UInventoryItem* NewItem);
+	bool TryItemCombination(const UPDA_ShopItem* NewItem);
 
 	/********************************************************************************/
 	/*                                  Client                                      */
