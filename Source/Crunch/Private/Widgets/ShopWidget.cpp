@@ -4,13 +4,23 @@
 #include "Widgets/ShopWidget.h"
 #include "Inventory/InventoryComponent.h"
 #include "ShopItemWidget.h"
+#include "ItemTreeWidget.h"
 #include "Components/TileView.h"
+#include "Components/CanvasPanelSlot.h"
 #include "FrameWork/CAssetManager.h"
 
 void UShopWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
 	SetIsFocusable(true);
+	
+	if (UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(Slot))
+	{
+		CanvasSlot->SetAnchors(FAnchors(AnchorPositionRatio));
+		CanvasSlot->SetAlignment(FVector2D(0.5f, 0.5f));
+		CanvasSlot->SetPosition(FVector2D::ZeroVector);
+	}
+	
 	LoadShopItems();
 	ShopItemList->OnEntryWidgetGenerated().AddUObject(this, &UShopWidget::ShopItemWidgetGenerated);
 	if (APawn* OwnerPawn = GetOwningPlayerPawn())
@@ -43,7 +53,17 @@ void UShopWidget::ShopItemWidgetGenerated(UUserWidget& NewWidget)
 		{
 			ItemWidget->OnItemPurchaseIssued.AddUObject(OwnerInventoryComponent, &UInventoryComponent::TryPurchase);
 		}
+		
+		ItemWidget->OnShopItemClicked.AddUObject(this, &UShopWidget::ShowItemCombination);
 
 		ItemsMap.Add(ItemWidget->GetShopItem(), ItemWidget);
+	}
+}
+
+void UShopWidget::ShowItemCombination(const UShopItemWidget* ItemWidget)
+{
+	if (CombinationTree && ItemWidget)
+	{
+		CombinationTree->DrawFromNode(ItemWidget);
 	}
 }
