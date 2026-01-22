@@ -44,3 +44,5 @@
 - ### 13 - GAS Optimization : *2026.1.4*
 
 - ### 14 - The Shop System : *2026.1.10*
+
+- ### 15 - The Inventory System : *2026.1.22*
