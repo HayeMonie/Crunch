@@ -2,6 +2,8 @@
 
 
 #include "Inventory/PDA_ShopItem.h"
+#include "AbilitySystemInterface.h"
+#include "Abilities/GameplayAbility.h"
 
 FItemCollection::FItemCollection() : Items{}
 {
@@ -43,4 +45,14 @@ FPrimaryAssetType UPDA_ShopItem::GetShopItemAssetType()
 UTexture2D* UPDA_ShopItem::GetIcon() const
 {
 	return Icon.LoadSynchronous();
+}
+
+UGameplayAbility* UPDA_ShopItem::GetGrantedAbilityCDO() const
+{
+	if (GrantedAbility)
+	{
+		return Cast<UGameplayAbility>(GrantedAbility->GetDefaultObject());
+	}
+
+	return nullptr;
 }

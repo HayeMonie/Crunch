@@ -5,10 +5,13 @@
 #include "CoreMinimal.h"
 #include "ActiveGameplayEffectHandle.h"
 #include "GameplayAbilitySpecHandle.h"
+#include "GAS/CAttributeSet.h"
 #include "UObject/NoExportTypes.h"
 #include "InventoryItem.generated.h"
 class UPDA_ShopItem;
 class UAbilitySystemComponent;
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnAbilityCanCastUpdatedDelegate, bool /*bCanCast*/);
 
 USTRUCT()
 struct FInventoryItemHandle
@@ -47,6 +50,8 @@ class UInventoryItem : public UObject
 	GENERATED_BODY()
 
 public:
+	FOnAbilityCanCastUpdatedDelegate OnAbilityCanCastUpdated;
+	
 	// Returns true if stack count was increased
 	bool AddStackCount();
 
@@ -63,20 +68,32 @@ public:
 	
 	UInventoryItem();
 	bool IsValid() const;
-	void InitItem(const FInventoryItemHandle& NewHandle, const UPDA_ShopItem* NewShopItem);
+	void InitItem(const FInventoryItemHandle& NewHandle, const UPDA_ShopItem* NewShopItem, UAbilitySystemComponent* AbilitySystemComponent);
 	const UPDA_ShopItem* GetShopItem() const { return ShopItem; }
 	FInventoryItemHandle GetHandle() const { return Handle; }
 	
-	bool TryActivateGrantedAbility(UAbilitySystemComponent* AbilitySystemComponent);
-	void ApplyConsumeEffect(UAbilitySystemComponent* AbilitySystemComponent);
-	void RemoveGasModifications(UAbilitySystemComponent* AbilitySystemComponent);
-	void ApplyGasModifications(UAbilitySystemComponent* AbilitySystemComponent);
+	bool TryActivateGrantedAbility();
+	void ApplyConsumeEffect();
+	void RemoveGasModifications();
 	FORCEINLINE int32 GetStackCount() const { return StackCount; }
 	void SetSlot(int32 NewSlot);
+	int32 GetItemSlot() const { return Slot; }
+
+	float GetAbilityCooldownTimeRemaining() const;
+	float GetAbilityCooldownDuration() const;
+	float GetAbilityManaCost() const;
+	bool CanCastAbility() const;
+	FGameplayAbilitySpecHandle GetGrantedAbilitySpecHandle() const { return GrantedAbilitySpecHandle; }
+	void SetGrantedAbilitySpecHandle(FGameplayAbilitySpecHandle SpecHandle) { GrantedAbilitySpecHandle = SpecHandle; }
 	
 private:
+	void ApplyGASModifications();
+	UAbilitySystemComponent* OwnerAbilitySystemComponent;
+	void ManaUpdated(const FOnAttributeChangeData& ChangeData);
+	
 	UPROPERTY()
 	const UPDA_ShopItem* ShopItem;
+	
 	FInventoryItemHandle Handle;
 	int32 StackCount;
 	int32 Slot;

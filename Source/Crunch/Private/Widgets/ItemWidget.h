@@ -8,6 +8,8 @@
 
 class UItemToolTip;
 class UPDA_ShopItem;
+
+
 /**
  * 
  */
@@ -22,6 +24,7 @@ public:
 
 protected:
 	UItemToolTip* SetToolTipWidget(const UPDA_ShopItem* Item);
+	class UImage* GetItemIcon() const { return ItemIcon; }
 
 private:
 	UPROPERTY(meta = (BindWidget))

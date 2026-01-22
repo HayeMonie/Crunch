@@ -46,6 +46,7 @@ public:
 	TSubclassOf<class UGameplayEffect> GetEquippedEffect() const { return EquippedEffect; }
 	TSubclassOf<class UGameplayEffect> GetConsumeEffect() const { return ConsumeEffect; }
 	TSubclassOf<class UGameplayAbility> GetGrantedAbility() const { return GrantedAbility; }
+	class UGameplayAbility* GetGrantedAbilityCDO() const;
 	bool GetIsStackable() const { return bIsStackable; }
 	bool GetIsConsumable() const { return bIsConsumable; }
 	int32 GetMaxStackCount() const { return MaxStackCount; }
