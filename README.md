@@ -46,3 +46,5 @@
 - ### 14 - The Shop System : *2026.1.10*
 
 - ### 15 - The Inventory System : *2026.1.22*
+
+- ### 16 - Create a Headshot Render : *2026.1.23*
