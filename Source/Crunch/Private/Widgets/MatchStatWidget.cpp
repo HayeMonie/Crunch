@@ -15,6 +15,7 @@ void UMatchStatWidget::NativeConstruct()
 	{
 		StormCore->OnTeamInfluencerCountUpdatedDelegate.AddUObject(this, &UMatchStatWidget::UpdateTeamInfluence);
 		StormCore->OnGoalReachedDelegate.AddUObject(this, &UMatchStatWidget::MatchFinished);
+		GetWorld()->GetTimerManager().SetTimer(UpdateProgressTimerHandle, this, &UMatchStatWidget::UpdateProgress, ProgressUpdateInterval, true);
 	}
 }
 
@@ -26,5 +27,18 @@ void UMatchStatWidget::UpdateTeamInfluence(int32 TeamOneCount, int32 TeamTwoCoun
 
 void UMatchStatWidget::MatchFinished(AActor* ViewTarget, int WinningTeam)
 {
-	
+	float Progress = WinningTeam == 0 ? 1.f : 0.f;
+
+	GetWorld()->GetTimerManager().ClearTimer(UpdateProgressTimerHandle);
+
+	ProgressImage->GetDynamicMaterial()->SetScalarParameterValue(ProgressDynamicMaterialParameterName, Progress);
+}
+
+void UMatchStatWidget::UpdateProgress()
+{
+	if (StormCore)
+	{
+		float Progress = StormCore->GetProgress();
+		ProgressImage->GetDynamicMaterial()->SetScalarParameterValue(ProgressDynamicMaterialParameterName, Progress);
+	}
 }

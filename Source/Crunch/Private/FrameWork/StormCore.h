@@ -23,6 +23,7 @@ public:
 	AStormCore();
 
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+	float GetProgress() const;
 
 protected:
 	// Called when the game starts or when spawned
@@ -85,6 +86,7 @@ private:
 	AActor* CoreToCapture;
 
 	float CoreCaptureSpeed = 0.0f;
+	float TravelLength = 0.0f;
 
 	UFUNCTION()
 	void OnRep_CoreToCapture();

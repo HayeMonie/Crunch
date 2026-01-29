@@ -35,6 +35,15 @@ void AStormCore::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifeti
 	DOREPLIFETIME_CONDITION_NOTIFY(AStormCore, CoreToCapture, COND_None, REPNOTIFY_Always);
 }
 
+float AStormCore::GetProgress() const
+{
+	FVector TeamTwoGoalLocation = TeamTwoGoal->GetActorLocation();
+	FVector VectorFromTeamOne = GetActorLocation() - TeamTwoGoalLocation;
+	VectorFromTeamOne.Z = 0.f;
+
+	return VectorFromTeamOne.Length() / TravelLength;
+}
+
 void AStormCore::OnRep_CoreToCapture()
 {
 	if (CoreToCapture)
@@ -47,7 +56,13 @@ void AStormCore::OnRep_CoreToCapture()
 void AStormCore::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	FVector TeamOneGoalLocation = TeamOneGoal->GetActorLocation();
+	FVector TeamTwoGoalLocation = TeamTwoGoal->GetActorLocation();
+
+	FVector GoalOffset = TeamOneGoalLocation - TeamTwoGoalLocation;
+	GoalOffset.Z = 0.f;
+
+	TravelLength = GoalOffset.Length();
 }
 
 void AStormCore::PossessedBy(AController* NewController)

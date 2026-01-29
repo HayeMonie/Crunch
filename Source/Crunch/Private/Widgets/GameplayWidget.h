@@ -20,7 +20,12 @@ public:
 	virtual void NativeConstruct() override;
 	void ConfigureAbilities(const TMap<ECAbilityInputID, TSubclassOf<UGameplayAbility>>& Abilities);
 	void ToggleShop();
+
+	UFUNCTION()
+	void ToggleGameplayMenu();
 	
+	void ShowGameplayMenu();
+	void SetGameplayMenuTitle(const FString& NewTitle);
 	
 private:
 	UPROPERTY(meta = (BindWidget))
@@ -58,6 +63,18 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	class UMatchStatWidget* MatchStatWidget;
+
+	UPROPERTY(meta = (BindWidget))
+	class UGameplayMenu* GameplayMenu;
+
+	UPROPERTY(meta = (BindWidget))
+	class UWidgetSwitcher* MainSwitcher;
+
+	UPROPERTY(meta = (BindWidget))
+	class UCanvasPanel* GameplayWidgetRootPanel;
+
+	UPROPERTY(meta = (BindWidget))
+	class UCanvasPanel* GameplayMenuRootPanel;
 
 	UPROPERTY(Transient, meta = (BindWidgetAnim))
 	class UWidgetAnimation* ShopPopUpAnimation;

@@ -18,6 +18,12 @@ public:
 	virtual void NativeConstruct() override;
 
 private:
+	UPROPERTY(EditDefaultsOnly, Category = "Match Stat")
+	float ProgressUpdateInterval = 0.5f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Match Stat")
+	FName ProgressDynamicMaterialParameterName = "Progress";
+	
 	UPROPERTY(meta = (BindWidget))
 	class UImage* ProgressImage;
 
@@ -31,6 +37,10 @@ private:
 	class AStormCore* StormCore;
 
 	void UpdateTeamInfluence(int32 TeamOneCount, int32 TeamTwoCount);
+	
 	void MatchFinished(AActor* ViewTarget, int WinningTeam);
+	void UpdateProgress();
+
+	FTimerHandle UpdateProgressTimerHandle;
 };
 
