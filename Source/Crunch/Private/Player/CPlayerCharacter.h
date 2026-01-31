@@ -22,6 +22,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void PawnClientRestart() override;   // 多人游戏中 初始化客户端中的输入系统
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void GetActorEyesViewPoint(FVector& OutLocation, FRotator& OutRotation) const override;
 	
 private:
 	UPROPERTY(VisibleDefaultsOnly, Category = "View")

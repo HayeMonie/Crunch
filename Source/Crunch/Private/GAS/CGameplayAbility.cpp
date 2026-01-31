@@ -39,6 +39,44 @@ bool UCGameplayAbility::CanActivateAbility(const FGameplayAbilitySpecHandle Hand
 	return Super::CanActivateAbility(Handle, ActorInfo, SourceTags, TargetTags, OptionalRelevantTags);
 }
 
+AActor* UCGameplayAbility::GetAimTarget(float AimDistance, ETeamAttitude::Type TeamAttitude) const
+{
+	AActor* OwnerAvatarActor = GetAvatarActorFromActorInfo();
+	if (OwnerAvatarActor)
+	{
+		FVector Location;
+		FRotator Rotation;
+		OwnerAvatarActor->GetActorEyesViewPoint(Location, Rotation);
+
+		FVector AimEnd = Location + Rotation.Vector() * AimDistance;
+
+		FCollisionQueryParams CollisionQueryParams;
+		CollisionQueryParams.AddIgnoredActor(OwnerAvatarActor);
+		
+		FCollisionObjectQueryParams CollisionObjectQueryParams;
+		CollisionObjectQueryParams.AddObjectTypesToQuery(ECC_Pawn);
+
+		if (ShouldDrawDebug())
+		{
+			DrawDebugLine(GetWorld(), Location, AimEnd, FColor::Red, false, 2.0f, 0U, 1.0f);
+		}
+
+		TArray<FHitResult> HitResults;
+		if (GetWorld()->LineTraceMultiByObjectType(HitResults, Location, AimEnd, CollisionObjectQueryParams, CollisionQueryParams))
+		{
+			for (FHitResult& HitResult : HitResults)
+			{
+				if (IsActorTeamAttitudeIs(HitResult.GetActor(), TeamAttitude))
+				{
+					return HitResult.GetActor();
+				}
+			}
+		}
+	}
+	
+	return nullptr;
+}
+
 TArray<FHitResult> UCGameplayAbility::GetHitResultFromSweepLocationTargetData(const FGameplayAbilityTargetDataHandle& TargetDataHandle,
                                                                               float SphereSweepRadius, ETeamAttitude::Type TargetTeam, bool bDrewDebug, bool bIgnoreSelf) const
 {
@@ -154,6 +192,33 @@ void UCGameplayAbility::StopMontageAfterCurrentSection(UAnimMontage* MontageToSt
 	}
 }
 
+FGenericTeamId UCGameplayAbility::GetOwnerTeamId() const
+{
+	IGenericTeamAgentInterface* OwnerTeamInterface = Cast<IGenericTeamAgentInterface>(GetAvatarActorFromActorInfo());
+	if (OwnerTeamInterface)
+	{
+		return OwnerTeamInterface->GetGenericTeamId();
+	}
+
+	return FGenericTeamId::NoTeam;
+}
+
+bool UCGameplayAbility::IsActorTeamAttitudeIs(const AActor* OtherActor, ETeamAttitude::Type TeamAttitude) const
+{
+	if (!OtherActor)
+	{
+		return false;
+	}
+	
+	IGenericTeamAgentInterface* OwnerTeamAgentInterface = Cast<IGenericTeamAgentInterface>(GetAvatarActorFromActorInfo());
+	if (OwnerTeamAgentInterface)
+	{
+		return OwnerTeamAgentInterface->GetTeamAttitudeTowards(*OtherActor) == TeamAttitude;
+	}
+
+	return false;
+}
+
 ACharacter* UCGameplayAbility::GetOwningAvatarCharacter()
 {
 	if (!AvatarCharacter)
@@ -185,4 +250,13 @@ void UCGameplayAbility::ApplyGameplayEffectToHitResultActor(const FHitResult& Hi
 	EffectSpecHandle.Data->SetContext(EffectContext);
 		
 	ApplyGameplayEffectSpecToTarget(GetCurrentAbilitySpecHandle(), CurrentActorInfo, CurrentActivationInfo, EffectSpecHandle, UAbilitySystemBlueprintLibrary::AbilityTargetDataFromActor(HitResult.GetActor()));
+}
+
+void UCGameplayAbility::SendLocalGameplayEvent(const FGameplayTag& EventTag, const FGameplayEventData& EventData)
+{
+	UAbilitySystemComponent* OwnerASC = GetAbilitySystemComponentFromActorInfo();
+	if (OwnerASC)
+	{
+		OwnerASC->HandleGameplayEvent(EventTag, &EventData);
+	}
 }

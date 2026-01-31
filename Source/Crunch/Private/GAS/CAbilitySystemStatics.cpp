@@ -77,15 +77,35 @@ FGameplayTag UCAbilitySystemStatics::GetGoldAttributeTag()
 	return FGameplayTag::RequestGameplayTag("Attribute.Gold");
 }
 
+FGameplayTag UCAbilitySystemStatics::GetCrosshairTag()
+{
+	return FGameplayTag::RequestGameplayTag("Stats.Crosshair");
+}
+
+FGameplayTag UCAbilitySystemStatics::GetTargetUpdatedTag()
+{
+	return FGameplayTag::RequestGameplayTag("Target.Updated");
+}
+
+bool UCAbilitySystemStatics::IsActorDead(const AActor* ActorToCheck)
+{
+	return ActorHasTag(ActorToCheck, GetDeadStatTag());
+}
+
 bool UCAbilitySystemStatics::IsHero(const AActor* ActorToCheck)
 {
-	const IAbilitySystemInterface* ActorASI = Cast<IAbilitySystemInterface>(ActorToCheck);
-	if (ActorASI)
+	return ActorHasTag(ActorToCheck, GetHeroRoleTag());
+}
+
+bool UCAbilitySystemStatics::ActorHasTag(const AActor* ActorToCheck, const FGameplayTag& Tag)
+{
+	const IAbilitySystemInterface* ActorISA = Cast<IAbilitySystemInterface>(ActorToCheck);
+	if (ActorISA)
 	{
-		UAbilitySystemComponent* ActorASC = ActorASI->GetAbilitySystemComponent();
+		UAbilitySystemComponent* ActorASC = ActorISA->GetAbilitySystemComponent();
 		if (ActorASC)
 		{
-			return ActorASC->HasMatchingGameplayTag(GetHeroRoleTag());
+			return ActorASC->HasMatchingGameplayTag(Tag);
 		}
 	}
 
