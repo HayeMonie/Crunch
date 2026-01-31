@@ -49,4 +49,6 @@
 
 - ### 16 - Create a Headshot Render : *2026.1.23*
 
-- ### 17 - Storm Core : *20262.1.29*
+- ### 17 - Storm Core : *2026.1.29*
+
+- ### 18 - Another Character with Ranged Attack : *2026.1.31*
