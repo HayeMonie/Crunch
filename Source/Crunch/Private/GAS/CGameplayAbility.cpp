@@ -161,8 +161,24 @@ void UCGameplayAbility::PushTarget(AActor* Target, const FVector& PushVelocity)
 
 void UCGameplayAbility::PushTargets(const TArray<AActor*>& Targets, const FVector& PushVel)
 {
+	// Debug信息已注释
+	/*
+	if (ShouldDrawDebug())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("=== PushTargets (Array) ==="));
+		UE_LOG(LogTemp, Warning, TEXT("Targets.Num: %d"), Targets.Num());
+		UE_LOG(LogTemp, Warning, TEXT("PushVelocity: %s"), *PushVel.ToString());
+	}
+	*/
+
 	for (AActor* Target : Targets)
 	{
+		/*
+		if (ShouldDrawDebug())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Pushing target: %s"), Target ? *Target->GetName() : TEXT("NULL"));
+		}
+		*/
 		PushTarget(Target, PushVel);
 	}
 }
@@ -170,6 +186,18 @@ void UCGameplayAbility::PushTargets(const TArray<AActor*>& Targets, const FVecto
 void UCGameplayAbility::PushTargets(const FGameplayAbilityTargetDataHandle& TargetDataHandle, const FVector& PushVel)
 {
 	TArray<AActor*> Targets = UAbilitySystemBlueprintLibrary::GetAllActorsFromTargetData(TargetDataHandle);
+
+	// Debug信息已注释
+	/*
+	if (ShouldDrawDebug())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("=== PushTargets (TargetDataHandle) ==="));
+		UE_LOG(LogTemp, Warning, TEXT("TargetDataHandle.Num: %d"), TargetDataHandle.Num());
+		UE_LOG(LogTemp, Warning, TEXT("Extracted Targets.Num: %d"), Targets.Num());
+		UE_LOG(LogTemp, Warning, TEXT("PushVelocity: %s"), *PushVel.ToString());
+	}
+	*/
+
 	PushTargets(Targets, PushVel);
 }
 

@@ -171,7 +171,14 @@ void AStormCore::UpdateTeamWeight()
 		TeamWeight = TeamOffset / TeamTotal;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Team One Count: %d, Team Two Count: %d, Team Weight: %f"), TeamOneInfluencerCount, TeamTwoInfluencerCount, TeamWeight);
+	// 每2秒输出一次debug信息
+	float CurrentTime = GetWorld() ? GetWorld()->GetTimeSeconds() : 0.0f;
+	if (CurrentTime - LastDebugPrintTime >= 2.0f)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Team One Count: %d, Team Two Count: %d, Team Weight: %f"), TeamOneInfluencerCount, TeamTwoInfluencerCount, TeamWeight);
+		LastDebugPrintTime = CurrentTime;
+	}
+
 	UpdateGoal();
 }
 

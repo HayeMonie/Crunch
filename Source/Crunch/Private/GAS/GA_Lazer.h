@@ -28,6 +28,12 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
 	float TargetingInterval { 0.3f };
+
+	UPROPERTY(EditDefaultsOnly, Category = "Effects")
+	TSubclassOf<class UGameplayEffect> HitDamageEffect;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Effects")
+	float HitPushSpeed { 3000.0f };
 	
 	UPROPERTY(EditDefaultsOnly, Category = "Effects")
 	TSubclassOf<class UGameplayEffect> OnGoingConsumptionEffect;
@@ -42,6 +48,9 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Targeting")
 	FName TargetActorAttachSocketName { "Lazer" };
+
+	UPROPERTY(EditDefaultsOnly, Category = "Lazer", meta = (ClampMin = "0.1"))
+	float MaxLazerDuration { 10.0f };
 
 	UFUNCTION()
 	void ShootLazer(FGameplayEventData Payload);

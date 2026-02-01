@@ -101,6 +101,8 @@ private:
 
 	float TeamWeight = 0.0f;
 
+	float LastDebugPrintTime = 0.0f;
+
 	UPROPERTY()
 	class AAIController* OwnerAIC;
 };

@@ -8,6 +8,7 @@
 #include "Abilities/Tasks/AbilityTask_WaitCancel.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "Abilities/Tasks/AbilityTask_WaitDelay.h"
 #include "GAS/TargetActor_Line.h"
 
 void UGA_Lazer::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -35,6 +36,10 @@ void UGA_Lazer::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 		UAbilityTask_WaitCancel* WaitCancel = UAbilityTask_WaitCancel::WaitCancel(this);
 		WaitCancel->OnCancel.AddDynamic(this, &UGA_Lazer::K2_EndAbility);
 		WaitCancel->ReadyForActivation();
+
+		UAbilityTask_WaitDelay* WaitDurationTask = UAbilityTask_WaitDelay::WaitDelay(this, MaxLazerDuration);
+		WaitDurationTask->OnFinish.AddDynamic(this, &UGA_Lazer::K2_EndAbility);
+		WaitDurationTask->ReadyForActivation();
 	}
 }
 
@@ -73,12 +78,19 @@ void UGA_Lazer::ShootLazer(FGameplayEventData Payload)
 
 	AGameplayAbilityTargetActor* TargetActor;
 	WaitDamageTargetTask->BeginSpawningActor(this, LazerTargetActorClass, TargetActor);
-	WaitDamageTargetTask->FinishSpawningActor(this, TargetActor);
 
 	ATargetActor_Line* LineTargetActor = Cast<ATargetActor_Line>(TargetActor);
 	if (LineTargetActor)
 	{
-		LineTargetActor->ConfigureTargetSetting(TargetRange, DetectionCylinderRadius, TargetingInterval, GetOwnerTeamId(), ShouldDrawDebug());
+		// 传递 0.0f 表示不覆盖 TargetActor 蓝图中的设置
+		// 如果想使用 GA_Lazer 中的设置，可以在 GA_Lazer 蓝图中修改这些值为正数
+		LineTargetActor->ConfigureTargetSetting(0.0f, 0.0f, 0.0f, GetOwnerTeamId(), ShouldDrawDebug());
+	}
+	
+	WaitDamageTargetTask->FinishSpawningActor(this, TargetActor);
+	
+	if (LineTargetActor)
+	{
 		LineTargetActor->AttachToComponent(GetOwningComponentFromActorInfo(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, TargetActorAttachSocketName);
 	}
 }
@@ -95,5 +107,57 @@ void UGA_Lazer::ManaUpdated(const FOnAttributeChangeData& ChangeData)
 
 void UGA_Lazer::TargetReceived(const FGameplayAbilityTargetDataHandle& TargetDataHandle)
 {
-	
+	// Debug信息已注释
+	/*
+	if (ShouldDrawDebug())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("=== GA_Lazer TargetReceived ==="));
+		UE_LOG(LogTemp, Warning, TEXT("TargetDataHandle.Num: %d"), TargetDataHandle.Num());
+
+		for (int32 i = 0; i < TargetDataHandle.Num(); i++)
+		{
+			const FGameplayAbilityTargetData* TargetData = TargetDataHandle.Get(i);
+			if (TargetData)
+			{
+				const TArray<TWeakObjectPtr<AActor>>& Actors = TargetData->GetActors();
+				UE_LOG(LogTemp, Warning, TEXT("  Data[%d] has %d actors:"), i, Actors.Num());
+				for (const TWeakObjectPtr<AActor>& WeakActor : Actors)
+				{
+					if (WeakActor.IsValid())
+					{
+						UE_LOG(LogTemp, Warning, TEXT("    - %s"), *WeakActor->GetName());
+					}
+				}
+			}
+		}
+	}
+	*/
+
+	if (K2_HasAuthority())
+	{
+		/*
+		if (ShouldDrawDebug())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Applying damage to targets..."));
+		}
+		*/
+		BP_ApplyGameplayEffectToTarget(TargetDataHandle, HitDamageEffect, GetAbilityLevel(CurrentSpecHandle, CurrentActorInfo));
+	}
+	/*
+	else
+	{
+		if (ShouldDrawDebug())
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Not on server, skipping damage application"));
+		}
+	}
+	*/
+
+	/*
+	if (ShouldDrawDebug())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Applying knockback to targets..."));
+	}
+	*/
+	PushTargets(TargetDataHandle, GetAvatarActorFromActorInfo()->GetActorForwardVector() * HitPushSpeed);
 }
