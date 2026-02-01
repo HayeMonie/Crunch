@@ -20,6 +20,7 @@ public class Crunch : ModuleRules
 			"Slate",
 			"SlateCore",
 			"AIModule",
+			"Niagara"
 			
 		});
 
