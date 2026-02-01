@@ -59,5 +59,8 @@ private:
 
 	UFUNCTION()
 	void TargetReceived(const FGameplayAbilityTargetDataHandle& TargetDataHandle);
+
+	UFUNCTION()
+	void HandleInputPressed(float TimeWaited);
 };
 

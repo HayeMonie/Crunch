@@ -52,3 +52,5 @@
 - ### 17 - Storm Core : *2026.1.29*
 
 - ### 18 - Another Character with Ranged Attack : *2026.1.31*
+
+- ### 19 - Lazer Ability : *2026.2.2*

@@ -9,14 +9,15 @@
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "Abilities/Tasks/AbilityTask_WaitDelay.h"
+#include "Abilities/Tasks/AbilityTask_WaitInputPress.h"
 #include "GAS/TargetActor_Line.h"
 
 void UGA_Lazer::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-	if (!K2_CommitAbility() || !LazerMontage)
+	if (!CommitAbility(Handle, ActorInfo, ActivationInfo) || !LazerMontage)
 	{
-		K2_EndAbility();
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 		return;
 	}
 
@@ -32,6 +33,10 @@ void UGA_Lazer::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const F
 		UAbilityTask_WaitGameplayEvent* WaitShootEvent = UAbilityTask_WaitGameplayEvent::WaitGameplayEvent(this, GetShootTag());
 		WaitShootEvent->EventReceived.AddDynamic(this, &UGA_Lazer::ShootLazer);
 		WaitShootEvent->ReadyForActivation();
+
+		UAbilityTask_WaitInputPress* WaitInputPress = UAbilityTask_WaitInputPress::WaitInputPress(this);
+		WaitInputPress->OnPress.AddDynamic(this, &UGA_Lazer::HandleInputPressed);
+		WaitInputPress->ReadyForActivation();
 
 		UAbilityTask_WaitCancel* WaitCancel = UAbilityTask_WaitCancel::WaitCancel(this);
 		WaitCancel->OnCancel.AddDynamic(this, &UGA_Lazer::K2_EndAbility);
@@ -102,7 +107,16 @@ void UGA_Lazer::ManaUpdated(const FOnAttributeChangeData& ChangeData)
 		GetAbilityLevel(CurrentSpecHandle, CurrentActorInfo), MakeEffectContext(CurrentSpecHandle, CurrentActorInfo)))
 	{
 		K2_EndAbility();
-	}	
+	}
+}
+
+void UGA_Lazer::HandleInputPressed(float TimeWaited)
+{
+	UAbilityTask_WaitInputPress* WaitInputPress = UAbilityTask_WaitInputPress::WaitInputPress(this);
+	WaitInputPress->OnPress.AddDynamic(this, &UGA_Lazer::HandleInputPressed);
+	WaitInputPress->ReadyForActivation();
+
+	K2_EndAbility();
 }
 
 void UGA_Lazer::TargetReceived(const FGameplayAbilityTargetDataHandle& TargetDataHandle)

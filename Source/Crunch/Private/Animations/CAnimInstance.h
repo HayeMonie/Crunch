@@ -123,6 +123,9 @@ private:
 	bool bIsAiming;
 	UPROPERTY(EditAnywhere, Category = "Animation")
 	float YawSpeedSmoothLerpSpeed {1.f};
+
+	UPROPERTY(EditAnywhere, Category = "Animation")
+	float YawSpeedLerpToZeroSpeed {30.f};
 	
 	FRotator BodyPrevRot;
 	FRotator LookRotOffset;
